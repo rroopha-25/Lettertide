@@ -1,0 +1,16 @@
+{
+  "name": "lettertide",
+  "version": "1.0.0",
+  "description": "Letters to your future self: encrypted in the browser, delivered by email on the day you choose.",
+  "main": "server.js",
+  "private": true,
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node --no-warnings=ExperimentalWarning server.js",
+    "test": "NODE_ENV=test node --no-warnings=ExperimentalWarning test/smoke.js"
+  },
+  "dependencies": {
+    "express": "4.21.2",
+    "nodemailer": "6.9.16"
+  }
+}

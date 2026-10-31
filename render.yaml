@@ -1,0 +1,26 @@
+# One-click setup on Render: New > Blueprint > pick this repository.
+services:
+  - type: web
+    name: lettertide
+    runtime: node
+    plan: starter            # must stay awake so scheduled letters go out on time
+    buildCommand: npm ci --omit=dev
+    startCommand: node --no-warnings=ExperimentalWarning server.js
+    healthCheckPath: /healthz
+    disk:
+      name: letters
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 22.13.0
+      - key: DB_PATH
+        value: /var/data/lettertide.db
+      - key: BASE_URL
+        sync: false          # your site address, e.g. https://lettertide.onrender.com
+      - key: SMTP_URL
+        sync: false          # e.g. smtps://you%40gmail.com:app-password@smtp.gmail.com:465
+      - key: MAIL_FROM
+        sync: false          # e.g. Lettertide <you@gmail.com>
+      - key: ANTHROPIC_API_KEY
+        sync: false          # optional, for personal Santa replies
