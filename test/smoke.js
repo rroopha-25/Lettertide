@@ -3,12 +3,14 @@
 const fs = require('node:fs'), os = require('node:os'), path = require('node:path'), assert = require('node:assert');
 process.env.DB_PATH = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'db-')), 'test.db');
 process.env.BASE_URL = 'http://localhost:0';
-delete process.env.SMTP_URL; delete process.env.ANTHROPIC_API_KEY;
-const { app, tick, db } = require('../server');
+delete process.env.SMTP_URL; delete process.env.ANTHROPIC_API_KEY; delete process.env.DATABASE_URL;
+process.env.CRON_SECRET = 'test-secret-123';
+const { app, tick, db, ready } = require('../server');
 const { outbox } = require('../mailer');
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 (async () => {
+  await ready;
   const srv = app.listen(0); const base = `http://localhost:${srv.address().port}`;
   const H = { 'Content-Type': 'application/json', 'X-Lettertide': '1' };
   let cookie = '';
@@ -60,15 +62,15 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   assert.equal((await call('/api/letters')).j.length, 6);
 
   // time-travel: scheduled card arrives
-  db.prepare('UPDATE mail SET deliver = ? WHERE id = ?').run(Date.now() - 1000, later.j.id);
+  await db.run('UPDATE mail SET deliver = ? WHERE id = ?', Date.now() - 1000, later.j.id);
   let res = await tick(); assert.equal(res.cards, 1);
   assert(outbox.at(-1).to === 'lee@example.com');
 
   // a year of silence → check-in; then future letter arrives → owner + backup
   await call('/api/me', { method: 'PATCH', body: JSON.stringify({ backupEmail: 'aunt@example.com' }) });
-  db.prepare('UPDATE users SET last_confirmed = ?').run(Date.now() - 400 * 864e5);
+  await db.run('UPDATE users SET last_confirmed = ?', Date.now() - 400 * 864e5);
   res = await tick(); assert.equal(res.checkins, 1);
-  db.prepare('UPDATE mail SET deliver = ? WHERE id = ?').run(Date.now() - 1000, fut.j.id);
+  await db.run('UPDATE mail SET deliver = ? WHERE id = ?', Date.now() - 1000, fut.j.id);
   res = await tick(); assert.equal(res.future, 1);
   assert.deepEqual(outbox.slice(-2).map(m => m.to).sort(), ['aunt@example.com', 'me.later@example.com']);
   const arrivedMail = outbox.find(m => m.to === 'me.later@example.com');
@@ -81,11 +83,17 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const all = (await call('/api/letters')).j;
   assert(!all.find(x => x.id === locked.j.id).opened && all.find(x => x.id === fut.j.id).opened);
 
+  // free scheduler endpoint: needs the secret
+  assert.equal((await fetch(base + '/api/cron/deliver')).status, 401);
+  assert.equal((await fetch(base + '/api/cron/deliver?key=wrong-secret-xx')).status, 401);
+  const cron = await fetch(base + '/api/cron/deliver', { headers: { Authorization: 'Bearer test-secret-123' } });
+  assert.equal(cron.status, 200); assert('future' in (await cron.json()));
+
   // export + delete everything
   assert.equal((await call('/api/export')).j.letters.length, 6);
   assert.equal((await call('/api/me', { method: 'DELETE' })).r.status, 200);
-  assert.equal(db.prepare('SELECT COUNT(*) n FROM mail').get().n, 0);
+  assert.equal((await db.get('SELECT COUNT(*) n FROM mail')).n, 0);
 
   srv.close();
-  console.log('All checks passed: sign-in, future letters, cards now + scheduled (escaped, reply-to parent), Santa reply, yearly check-in, delivery + backup, export, deletion.');
+  console.log('All checks passed: sign-in, scheduler link, future letters, cards now + scheduled (escaped, reply-to parent), Santa reply, yearly check-in, delivery + backup, export, deletion.');
 })().catch(e => { console.error(e); process.exit(1); });

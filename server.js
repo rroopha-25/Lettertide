@@ -4,43 +4,16 @@ const path = require('node:path');
 const fs = require('node:fs');
 const crypto = require('node:crypto');
 const express = require('express');
-const { DatabaseSync } = require('node:sqlite');
+const db = require('./db');
 const mailer = require('./mailer');
 const santa = require('./santa');
 
 const PORT = Number(process.env.PORT || 3000);
 const BASE_URL = (process.env.BASE_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'lettertide.db');
+const CRON_SECRET = process.env.CRON_SECRET || '';
 const WORKER_MS = Number(process.env.WORKER_INTERVAL_MS || 5 * 60 * 1000);
 const DAY = 864e5;
 const SECURE = BASE_URL.startsWith('https://');
-
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-const db = new DatabaseSync(DB_PATH);
-db.exec(`
-PRAGMA journal_mode = WAL;
-PRAGMA foreign_keys = ON;
-CREATE TABLE IF NOT EXISTS users (
-  id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, backup_email TEXT,
-  created INTEGER NOT NULL, last_confirmed INTEGER NOT NULL, checkin_sent INTEGER
-);
-CREATE TABLE IF NOT EXISTS login_tokens (hash TEXT PRIMARY KEY, email TEXT NOT NULL, expires INTEGER NOT NULL, used INTEGER DEFAULT 0);
-CREATE TABLE IF NOT EXISTS sessions (hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires INTEGER NOT NULL);
-CREATE TABLE IF NOT EXISTS confirm_tokens (hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires INTEGER NOT NULL);
-CREATE TABLE IF NOT EXISTS mail (
-  id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  kind TEXT NOT NULL CHECK (kind IN ('future','people','santa')),
-  created INTEGER NOT NULL,
-  deliver INTEGER NOT NULL,
-  data TEXT NOT NULL,
-  recipient_email TEXT,
-  delivered_at INTEGER,
-  opened INTEGER
-);
-CREATE INDEX IF NOT EXISTS mail_due ON mail(deliver) WHERE delivered_at IS NULL;
-CREATE INDEX IF NOT EXISTS mail_user ON mail(user_id);
-`);
 
 const now = () => Date.now();
 const token = () => crypto.randomBytes(32).toString('base64url');
@@ -51,6 +24,11 @@ const str = (v, max) => String(v ?? '').slice(0, max);
 
 /* ---------- app ---------- */
 const app = express();
+// let async handlers report errors instead of hanging the request
+for (const m of ['get', 'post', 'patch', 'delete', 'use']) {
+  const orig = app[m].bind(app);
+  app[m] = (...args) => orig(...args.map(f => typeof f === 'function' && f.length < 4 ? (req, res, next) => Promise.resolve(f(req, res, next)).catch(next) : f));
+}
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '600kb' }));
@@ -75,10 +53,10 @@ function readCookie(req, name) {
   const m = (req.headers.cookie || '').split(/;\s*/).find(c => c.startsWith(name + '='));
   return m ? decodeURIComponent(m.slice(name.length + 1)) : null;
 }
-function auth(req, res, next) {
+async function auth(req, res, next) {
   const t = readCookie(req, 'db_session');
   if (!t) return res.status(401).json({ error: 'Please sign in first.' });
-  const s = db.prepare('SELECT s.user_id, s.expires, u.email, u.backup_email FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.hash = ?').get(sha(t));
+  const s = await db.get('SELECT s.user_id, s.expires, u.email, u.backup_email FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.hash = ?', sha(t));
   if (!s || s.expires < now()) return res.status(401).json({ error: 'Your sign-in expired. Please sign in again.' });
   req.user = { id: s.user_id, email: s.email, backup_email: s.backup_email };
   next();
@@ -92,44 +70,45 @@ app.post('/api/auth/request', async (req, res) => {
   if (!limit('ip:' + req.ip, 10, 15 * 60e3) || !limit('em:' + email, 3, 15 * 60e3))
     return res.status(429).json({ error: 'Too many sign-in emails. Please wait 15 minutes.' });
   const t = token();
-  db.prepare('INSERT INTO login_tokens (hash, email, expires) VALUES (?, ?, ?)').run(sha(t), email, now() + 20 * 60e3);
+  await db.run('INSERT INTO login_tokens (hash, email, expires) VALUES (?, ?, ?)', sha(t), email, now() + 20 * 60e3);
   await mailer.send(email, mailer.templates.signIn(`${BASE_URL}/api/auth/verify?token=${t}`));
   res.json({ ok: true });
 });
-app.get('/api/auth/verify', (req, res) => {
-  const row = db.prepare('SELECT * FROM login_tokens WHERE hash = ?').get(sha(String(req.query.token || '')));
+app.get('/api/auth/verify', async (req, res) => {
+  const row = await db.get('SELECT * FROM login_tokens WHERE hash = ?', sha(String(req.query.token || '')));
   if (!row || row.used || row.expires < now()) return res.redirect('/?signin=expired#home');
-  db.prepare('UPDATE login_tokens SET used = 1 WHERE hash = ?').run(row.hash);
-  let user = db.prepare('SELECT * FROM users WHERE email = ?').get(row.email);
+  await db.run('UPDATE login_tokens SET used = 1 WHERE hash = ?', row.hash);
+  let user = await db.get('SELECT * FROM users WHERE email = ?', row.email);
   if (!user) {
     user = { id: crypto.randomUUID(), email: row.email };
-    db.prepare('INSERT INTO users (id, email, created, last_confirmed) VALUES (?, ?, ?, ?)').run(user.id, user.email, now(), now());
-  } else db.prepare('UPDATE users SET last_confirmed = ?, checkin_sent = NULL WHERE id = ?').run(now(), user.id);
+    await db.run('INSERT INTO users (id, email, created, last_confirmed) VALUES (?, ?, ?, ?)', user.id, user.email, now(), now());
+  } else await db.run('UPDATE users SET last_confirmed = ?, checkin_sent = NULL WHERE id = ?', now(), user.id);
   const s = token();
-  db.prepare('INSERT INTO sessions (hash, user_id, expires) VALUES (?, ?, ?)').run(sha(s), user.id, now() + 90 * DAY);
+  await db.run('INSERT INTO sessions (hash, user_id, expires) VALUES (?, ?, ?)', sha(s), user.id, now() + 90 * DAY);
   res.set('Set-Cookie', `db_session=${s}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${90 * 86400}${SECURE ? '; Secure' : ''}`);
   res.redirect('/#home');
 });
-app.post('/api/auth/logout', auth, (req, res) => {
-  db.prepare('DELETE FROM sessions WHERE hash = ?').run(sha(readCookie(req, 'db_session')));
+app.post('/api/auth/logout', auth, async (req, res) => {
+  await db.run('DELETE FROM sessions WHERE hash = ?', sha(readCookie(req, 'db_session')));
   res.set('Set-Cookie', 'db_session=; Path=/; Max-Age=0'); res.json({ ok: true });
 });
-app.get('/api/me', auth, (req, res) => res.json({ email: req.user.email, backupEmail: req.user.backup_email || '' }));
-app.patch('/api/me', auth, (req, res) => {
+app.get('/api/me', auth, async (req, res) => res.json({ email: req.user.email, backupEmail: req.user.backup_email || '' }));
+app.patch('/api/me', auth, async (req, res) => {
   const b = normEmail(req.body?.backupEmail);
   if (b && !EMAIL_RE.test(b)) return res.status(400).json({ error: 'Please type a full backup email address.' });
-  db.prepare('UPDATE users SET backup_email = ? WHERE id = ?').run(b || null, req.user.id);
+  await db.run('UPDATE users SET backup_email = ? WHERE id = ?', b || null, req.user.id);
   res.json({ ok: true, backupEmail: b });
 });
-app.delete('/api/me', auth, (req, res) => {
-  db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
+app.delete('/api/me', auth, async (req, res) => {
+  for (const t of ['mail', 'sessions', 'confirm_tokens']) await db.run(`DELETE FROM ${t} WHERE user_id = ?`, req.user.id);
+  await db.run('DELETE FROM users WHERE id = ?', req.user.id);
   res.set('Set-Cookie', 'db_session=; Path=/; Max-Age=0'); res.json({ ok: true });
 });
-app.get('/api/confirm', (req, res) => {
-  const row = db.prepare('SELECT * FROM confirm_tokens WHERE hash = ?').get(sha(String(req.query.token || '')));
+app.get('/api/confirm', async (req, res) => {
+  const row = await db.get('SELECT * FROM confirm_tokens WHERE hash = ?', sha(String(req.query.token || '')));
   if (!row || row.expires < now()) return res.redirect('/?confirm=expired#mailbox');
-  db.prepare('UPDATE users SET last_confirmed = ?, checkin_sent = NULL WHERE id = ?').run(now(), row.user_id);
-  db.prepare('DELETE FROM confirm_tokens WHERE hash = ?').run(row.hash);
+  await db.run('UPDATE users SET last_confirmed = ?, checkin_sent = NULL WHERE id = ?', now(), row.user_id);
+  await db.run('DELETE FROM confirm_tokens WHERE hash = ?', row.hash);
   res.redirect('/?confirm=ok#mailbox');
 });
 
@@ -165,10 +144,10 @@ function clean(b) {
 }
 const toClient = r => ({ ...JSON.parse(r.data), id: r.id, kind: r.kind, created: r.created, deliver: r.deliver, delivered: !!r.delivered_at, opened: r.opened || undefined });
 
-app.get('/api/letters', auth, (req, res) => {
-  res.json(db.prepare('SELECT * FROM mail WHERE user_id = ? ORDER BY created DESC').all(req.user.id).map(toClient));
+app.get('/api/letters', auth, async (req, res) => {
+  res.json((await db.all('SELECT * FROM mail WHERE user_id = ? ORDER BY created DESC', req.user.id)).map(toClient));
 });
-app.post('/api/letters', auth, (req, res) => {
+app.post('/api/letters', auth, async (req, res) => {
   const b = req.body || {};
   let data; try { data = clean(b); } catch (e) { return res.status(400).json({ error: String(e) }); }
   const t = now();
@@ -176,29 +155,28 @@ app.post('/api/letters', auth, (req, res) => {
   if (b.kind === 'santa') deliver = t;
   else if (b.kind === 'people') { if (!(deliver >= t - 5 * 60e3 && deliver < t + 5 * 365 * DAY)) return res.status(400).json({ error: 'Pick a day within the next 5 years.' }); deliver = Math.max(deliver, t); }
   else if (!(deliver > t + 60e3 && deliver < t + 101 * 365 * DAY)) return res.status(400).json({ error: 'Pick a day between tomorrow and 100 years from now.' });
-  const count = db.prepare('SELECT COUNT(*) n FROM mail WHERE user_id = ?').get(req.user.id).n;
+  const count = (await db.get('SELECT COUNT(*) n FROM mail WHERE user_id = ?', req.user.id)).n;
   if (count >= 1000) return res.status(400).json({ error: 'Your mailbox is full. Delete some old letters first.' });
   if (b.kind === 'people' && data.recipientEmail && !limit('cards:' + req.user.id, 20, DAY)) return res.status(429).json({ error: 'You can email up to 20 cards a day. Try again tomorrow.' });
   const id = crypto.randomUUID();
   const recipient = b.kind === 'people' ? data.recipientEmail || null : b.kind === 'future' ? data.deliverTo || req.user.email : null;
-  db.prepare('INSERT INTO mail (id, user_id, kind, created, deliver, data, recipient_email, delivered_at) VALUES (?,?,?,?,?,?,?,?)')
-    .run(id, req.user.id, b.kind, t, deliver, JSON.stringify(data), recipient, b.kind === 'santa' || (b.kind === 'people' && !recipient) ? t : null);
-  res.status(201).json(toClient(db.prepare('SELECT * FROM mail WHERE id = ?').get(id)));
+  await db.run('INSERT INTO mail (id, user_id, kind, created, deliver, data, recipient_email, delivered_at) VALUES (?,?,?,?,?,?,?,?)', id, req.user.id, b.kind, t, deliver, JSON.stringify(data), recipient, b.kind === 'santa' || (b.kind === 'people' && !recipient) ? t : null);
+  res.status(201).json(toClient(await db.get('SELECT * FROM mail WHERE id = ?', id)));
   if (b.kind === 'people' && recipient && deliver <= now() + 1000) tick().catch(e => console.error(e)); // "right now" cards go out immediately
 });
-app.patch('/api/letters/:id', auth, (req, res) => {
-  const r = db.prepare('SELECT * FROM mail WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
+app.patch('/api/letters/:id', auth, async (req, res) => {
+  const r = await db.get('SELECT * FROM mail WHERE id = ? AND user_id = ?', req.params.id, req.user.id);
   if (!r) return res.status(404).json({ error: 'Letter not found.' });
-  if (req.body?.opened && r.deliver <= now()) db.prepare('UPDATE mail SET opened = ? WHERE id = ?').run(now(), r.id);
-  res.json(toClient(db.prepare('SELECT * FROM mail WHERE id = ?').get(r.id)));
+  if (req.body?.opened && r.deliver <= now()) await db.run('UPDATE mail SET opened = ? WHERE id = ?', now(), r.id);
+  res.json(toClient(await db.get('SELECT * FROM mail WHERE id = ?', r.id)));
 });
-app.delete('/api/letters/:id', auth, (req, res) => {
-  db.prepare('DELETE FROM mail WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
+app.delete('/api/letters/:id', auth, async (req, res) => {
+  await db.run('DELETE FROM mail WHERE id = ? AND user_id = ?', req.params.id, req.user.id);
   res.json({ ok: true });
 });
-app.get('/api/export', auth, (req, res) => {
+app.get('/api/export', auth, async (req, res) => {
   res.set('Content-Disposition', 'attachment; filename="lettertide-letters.json"');
-  res.json({ exported: new Date().toISOString(), letters: db.prepare('SELECT * FROM mail WHERE user_id = ?').all(req.user.id).map(toClient) });
+  res.json({ exported: new Date().toISOString(), letters: (await db.all('SELECT * FROM mail WHERE user_id = ?', req.user.id)).map(toClient) });
 });
 
 /* ---------- Santa ---------- */
@@ -212,8 +190,19 @@ app.post('/api/santa', auth, async (req, res) => {
 /* ---------- page ---------- */
 const PAGE = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
 const SHELL = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script>window.LETTERTIDE_API="/api";</script></head><body>${PAGE}</body></html>`;
-app.get('/', (req, res) => res.type('html').send(SHELL));
-app.get('/healthz', (req, res) => res.json({ ok: true }));
+app.get('/', async (req, res) => res.type('html').send(SHELL));
+app.get('/healthz', async (req, res) => res.json({ ok: true }));
+
+// A free scheduler (cron-job.org) calls this every 10 minutes. It keeps the free server awake
+// and sends whatever letters and cards are due.
+app.get('/api/cron/deliver', async (req, res) => {
+  const given = String(req.get('authorization') || '').replace(/^Bearer\s+/i, '') || String(req.query.key || '');
+  if (!CRON_SECRET || given.length !== CRON_SECRET.length || !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(CRON_SECRET)))
+    return res.status(401).json({ error: 'Not allowed.' });
+  res.json(await tick());
+});
+
+app.use((err, req, res, next) => { console.error(err); res.status(500).json({ error: 'Something went wrong on our side. Please try again.' }); });
 
 /* ---------- delivery worker ---------- */
 let running = false;
@@ -222,8 +211,8 @@ async function tick() {
   running = true;
   const t = now(), out = { future: 0, cards: 0, checkins: 0 };
   try {
-    const due = db.prepare(`SELECT m.*, u.email, u.backup_email, u.last_confirmed FROM mail m JOIN users u ON u.id = m.user_id
-                            WHERE m.delivered_at IS NULL AND m.deliver <= ? LIMIT 300`).all(t);
+    const due = await db.all(`SELECT m.*, u.email, u.backup_email, u.last_confirmed FROM mail m JOIN users u ON u.id = m.user_id
+                            WHERE m.delivered_at IS NULL AND m.deliver <= ? LIMIT 300`, t);
     for (const m of due) {
       try {
         if (m.kind === 'future') {
@@ -236,28 +225,31 @@ async function tick() {
           await mailer.send(m.recipient_email, mailer.templates.card(card), { replyTo: m.email, fromName: card.from });
           out.cards++;
         }
-        db.prepare('UPDATE mail SET delivered_at = ? WHERE id = ?').run(t, m.id);
+        await db.run('UPDATE mail SET delivered_at = ? WHERE id = ?', t, m.id);
       } catch (e) { console.error('delivery failed', m.id, e.message); }
     }
-    const stale = db.prepare(`SELECT u.* FROM users u WHERE u.last_confirmed < ? AND (u.checkin_sent IS NULL OR u.checkin_sent < ?)
-                              AND EXISTS (SELECT 1 FROM mail m WHERE m.user_id = u.id AND m.kind = 'future' AND m.delivered_at IS NULL) LIMIT 200`).all(t - 365 * DAY, t - 30 * DAY);
+    const stale = await db.all(`SELECT u.* FROM users u WHERE u.last_confirmed < ? AND (u.checkin_sent IS NULL OR u.checkin_sent < ?)
+                              AND EXISTS (SELECT 1 FROM mail m WHERE m.user_id = u.id AND m.kind = 'future' AND m.delivered_at IS NULL) LIMIT 200`, t - 365 * DAY, t - 30 * DAY);
     for (const u of stale) {
       const ct = token();
-      db.prepare('INSERT INTO confirm_tokens (hash, user_id, expires) VALUES (?, ?, ?)').run(sha(ct), u.id, t + 60 * DAY);
-      const pending = db.prepare("SELECT COUNT(*) n FROM mail WHERE user_id = ? AND kind = 'future' AND delivered_at IS NULL").get(u.id).n;
-      try { await mailer.send(u.email, mailer.templates.checkIn({ link: `${BASE_URL}/api/confirm?token=${ct}`, pending })); db.prepare('UPDATE users SET checkin_sent = ? WHERE id = ?').run(t, u.id); out.checkins++; }
+      await db.run('INSERT INTO confirm_tokens (hash, user_id, expires) VALUES (?, ?, ?)', sha(ct), u.id, t + 60 * DAY);
+      const pending = (await db.get("SELECT COUNT(*) n FROM mail WHERE user_id = ? AND kind = 'future' AND delivered_at IS NULL", u.id)).n;
+      try { await mailer.send(u.email, mailer.templates.checkIn({ link: `${BASE_URL}/api/confirm?token=${ct}`, pending })); await db.run('UPDATE users SET checkin_sent = ? WHERE id = ?', t, u.id); out.checkins++; }
       catch (e) { console.error('check-in failed', u.id, e.message); }
     }
-    db.prepare('DELETE FROM login_tokens WHERE expires < ?').run(t - DAY);
-    db.prepare('DELETE FROM sessions WHERE expires < ?').run(t);
-    db.prepare('DELETE FROM confirm_tokens WHERE expires < ?').run(t);
+    await db.run('DELETE FROM login_tokens WHERE expires < ?', t - DAY);
+    await db.run('DELETE FROM sessions WHERE expires < ?', t);
+    await db.run('DELETE FROM confirm_tokens WHERE expires < ?', t);
   } finally { running = false; }
   return out;
 }
 
+const ready = db.init();
 if (require.main === module) {
-  app.listen(PORT, () => console.log(`Lettertide at ${BASE_URL} (mail: ${mailer.mode}, santa: ${santa.mode})`));
-  tick().catch(e => console.error(e));
-  setInterval(() => tick().catch(e => console.error(e)), WORKER_MS);
+  ready.then(() => {
+    app.listen(PORT, () => console.log(`Lettertide at ${BASE_URL} (db: ${db.mode}, mail: ${mailer.mode}, santa: ${santa.mode})`));
+    tick().catch(e => console.error(e));
+    setInterval(() => tick().catch(e => console.error(e)), WORKER_MS);
+  }).catch(e => { console.error('Could not open the database:', e.message); process.exit(1); });
 }
-module.exports = { app, tick, db };
+module.exports = { app, tick, db, ready };

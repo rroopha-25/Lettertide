@@ -95,9 +95,10 @@ Every letter in one place: floating to the future, arrived, Santa's replies, and
 ## How it works
 
 - **Website:** one HTML page (no framework) with a step-by-step wizard for each kind of letter.
-- **Server:** Node.js with Express, and SQLite (built into Node 22) for storage.
-- **Delivery:** every 5 minutes the server sends whatever is due: arriving future letters, scheduled cards, and the yearly check-in.
-- **Email:** any SMTP provider. A Gmail app password works for getting started.
+- **Server:** Node.js with Express.
+- **Storage:** a free [Turso](https://turso.tech) database (SQLite in the cloud). Locally it uses a plain SQLite file.
+- **Email:** a free Google Apps Script on your Gmail (`google-apps-script/send-mail.gs`), so emails come from a real Gmail account. Any SMTP provider also works on hosts that allow it.
+- **Delivery:** [cron-job.org](https://cron-job.org) (free) calls `/api/cron/deliver` every 10 minutes. That sends whatever is due (arriving future letters, scheduled cards, yearly check-ins) and keeps the free server awake.
 - **Santa:** writes personal replies with Claude when an Anthropic API key is set; otherwise a warm ready-made reply is used.
 
 ## Run it on your computer
@@ -112,24 +113,30 @@ npm test           # end-to-end check of every feature
 
 Without email settings, emails are printed in the terminal, so you can copy the sign-in link from there.
 
-## Put it online
+## Put it online for free
 
-1. **Email:** create a Gmail app password (Google Account → Security → App passwords), or use a provider like Resend or Postmark.
-2. **Hosting:** on [Render](https://render.com), choose **New → Blueprint** and pick this repository. The included `render.yaml` sets up the site and a disk for letters (Starter plan, about $7 a month, so it stays awake to deliver on time).
-3. **Settings:** fill in the values from `.env.example`:
+Everything below has a free plan. Total cost: $0.
+
+1. **Database (Turso):** sign up at turso.tech with GitHub, create a database called `lettertide`, and copy its URL (`libsql://…`) and a database token.
+2. **Email (Google Apps Script):** go to script.google.com with the Gmail you'll send from, create a new project, paste in `google-apps-script/send-mail.gs`, change `SECRET` to a long made-up phrase, run `testSend` once to approve it, then **Deploy → New deployment → Web app** (Execute as: Me, Who has access: Anyone) and copy the web app URL.
+3. **Website (Render):** in the Render dashboard open **Blueprints → New Blueprint Instance**, pick this repository, and fill in:
    - `BASE_URL`: your site address, for example `https://lettertide.onrender.com`
-   - `SMTP_URL`: for Gmail, `smtps://YOUR-NAME%40gmail.com:APP-PASSWORD@smtp.gmail.com:465`
-   - `MAIL_FROM`: `Lettertide <your-name@gmail.com>`
-   - `ANTHROPIC_API_KEY`: optional, for personal Santa replies
-4. **Backups:** copy the `data/` folder to a second place every day. Future letters need to survive for years.
+   - `DATABASE_URL` and `DATABASE_TOKEN`: from Turso
+   - `MAIL_WEBHOOK_URL`: the web app URL; `MAIL_WEBHOOK_SECRET`: the same phrase as `SECRET`
+   - `ANTHROPIC_API_KEY`: optional
 
-A `Dockerfile` is included for any other host.
+   `CRON_SECRET` is created for you.
+4. **Scheduler (cron-job.org):** create a free job that opens `https://YOUR-SITE/api/cron/deliver?key=YOUR-CRON_SECRET` every 10 minutes. Copy `CRON_SECRET` from the service's Environment page on Render.
+
+Free plans have limits: Gmail sends up to 100 emails a day through Apps Script, and Render's free plan sleeps if the scheduler stops. For a bigger audience, move to a paid Render plan and an email service with your own domain; nothing else changes.
 
 ## Project structure
 
 ```
 public/index.html   the whole website
 server.js           sign-in, letters API, delivery worker
+db.js               storage (Turso in production, a file locally)
+google-apps-script/ free Gmail mail sender
 mailer.js           email sending and email designs
 santa.js            Santa's replies and safety rules
 test/smoke.js       end-to-end test of every feature

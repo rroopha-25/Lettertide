@@ -1,10 +1,15 @@
-// Email sending. Configure SMTP_URL (e.g. smtps://user:pass@smtp.provider.com:465) to send real mail.
-// Without it, emails are printed to the console so you can develop locally.
+// Email sending, three ways (first one configured wins):
+//  1. MAIL_WEBHOOK_URL + MAIL_WEBHOOK_SECRET: a free Google Apps Script on your Gmail sends it
+//     (works on Render's free plan, which blocks SMTP). See google-apps-script/send-mail.gs.
+//  2. SMTP_URL: any SMTP provider (needs a paid Render plan or another host that allows SMTP).
+//  3. Neither: emails are printed to the console, for local development.
 'use strict';
 const nodemailer = require('nodemailer');
 
 const FROM = process.env.MAIL_FROM || 'Lettertide <letters@localhost>';
-const transport = process.env.SMTP_URL ? nodemailer.createTransport(process.env.SMTP_URL) : null;
+const WEBHOOK = process.env.MAIL_WEBHOOK_URL || '';
+const WEBHOOK_SECRET = process.env.MAIL_WEBHOOK_SECRET || '';
+const transport = !WEBHOOK && process.env.SMTP_URL ? nodemailer.createTransport(process.env.SMTP_URL) : null;
 const outbox = []; // last messages, used by tests in console mode
 
 const fmt = d => new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -78,6 +83,16 @@ function fromFor(name) {
 }
 
 async function send(to, msg, opts = {}) {
+  if (WEBHOOK) {
+    const r = await fetch(WEBHOOK, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, redirect: 'follow', signal: AbortSignal.timeout(30000),
+      body: JSON.stringify({ secret: WEBHOOK_SECRET, to, subject: msg.subject, text: msg.text, html: msg.html, replyTo: opts.replyTo || '',
+        name: opts.fromName ? `${String(opts.fromName).replace(/["<>\r\n]/g, '').slice(0, 60)} via Lettertide` : 'Lettertide' })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error('Mail script refused: ' + (j.error || r.status));
+    return;
+  }
   if (!transport) {
     outbox.push({ to, ...msg, ...opts });
     if (outbox.length > 50) outbox.shift();
@@ -87,4 +102,4 @@ async function send(to, msg, opts = {}) {
   await transport.sendMail({ from: fromFor(opts.fromName), to, subject: msg.subject, text: msg.text, html: msg.html, replyTo: opts.replyTo });
 }
 
-module.exports = { send, templates, outbox, fromFor, mode: transport ? 'smtp' : 'console' };
+module.exports = { send, templates, outbox, fromFor, mode: WEBHOOK ? 'gmail-script' : transport ? 'smtp' : 'console' };

@@ -1,26 +1,28 @@
-# One-click setup on Render: Blueprints > New Blueprint Instance > pick this repository.
-# No plan is set, so Render uses its default paid instance (needed for the disk and to stay awake).
+# Free setup on Render: Blueprints > New Blueprint Instance > pick this repository.
+# Letters are stored in a free Turso database, emails go out through a free Google Apps Script,
+# and cron-job.org (free) calls /api/cron/deliver every 10 minutes to send what's due.
 services:
   - type: web
     name: lettertide
     runtime: node
+    plan: free
     buildCommand: npm ci --omit=dev
     startCommand: node --no-warnings=ExperimentalWarning server.js
     healthCheckPath: /healthz
-    disk:
-      name: letters
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: "22.13.0"
-      - key: DB_PATH
-        value: /var/data/lettertide.db
+      - key: CRON_SECRET
+        generateValue: true
       - key: BASE_URL
         sync: false
-      - key: SMTP_URL
+      - key: DATABASE_URL
         sync: false
-      - key: MAIL_FROM
+      - key: DATABASE_TOKEN
+        sync: false
+      - key: MAIL_WEBHOOK_URL
+        sync: false
+      - key: MAIL_WEBHOOK_SECRET
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
