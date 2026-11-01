@@ -1,9 +1,9 @@
-# One-click setup on Render: New > Blueprint > pick this repository.
+# One-click setup on Render: Blueprints > New Blueprint Instance > pick this repository.
+# No plan is set, so Render uses its default paid instance (needed for the disk and to stay awake).
 services:
   - type: web
     name: lettertide
     runtime: node
-    plan: starter            # must stay awake so scheduled letters go out on time
     buildCommand: npm ci --omit=dev
     startCommand: node --no-warnings=ExperimentalWarning server.js
     healthCheckPath: /healthz
@@ -13,14 +13,14 @@ services:
       sizeGB: 1
     envVars:
       - key: NODE_VERSION
-        value: 22.13.0
+        value: "22.13.0"
       - key: DB_PATH
         value: /var/data/lettertide.db
       - key: BASE_URL
-        sync: false          # your site address, e.g. https://lettertide.onrender.com
+        sync: false
       - key: SMTP_URL
-        sync: false          # e.g. smtps://you%40gmail.com:app-password@smtp.gmail.com:465
+        sync: false
       - key: MAIL_FROM
-        sync: false          # e.g. Lettertide <you@gmail.com>
+        sync: false
       - key: ANTHROPIC_API_KEY
-        sync: false          # optional, for personal Santa replies
+        sync: false
