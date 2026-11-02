@@ -94,6 +94,7 @@ Every letter in one place: floating to the future, arrived, Santa's replies, and
 - **Santa's rules** are fixed on the server and can't be changed by what a child types.
 - **Lettertide never contacts the person you write to.** Postcards are sent by the sender from their own phone or email; Lettertide only emails the signed-in grown-up (sign-in links, their own future letters, and reminders).
 - **Limits** on sign-in emails, cards (20 a day) and Santa replies keep it from being misused.
+- **No tracking cookies.** The website counts visits with [GoatCounter](https://www.goatcounter.com), which uses no cookies and collects no personal data. Only page names and moments like "postcard sent" are counted, never what anyone writes.
 - **Your data is yours.** Download every letter at any time, or delete your account and everything in it.
 
 ## Try it

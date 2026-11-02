@@ -436,6 +436,10 @@ const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag)
 const ls = { get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }, set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } }, del(k){ try { localStorage.removeItem(k); } catch {} } };
 const still = matchMedia('(prefers-reduced-motion: reduce)');
 let toastT; function toast(t){ const e = $('#toast'); e.textContent = t; e.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => e.hidden = true, 4200); }
+// Anonymous visit counts (GoatCounter, on the public website only). Only page names and event names are sent, never anything a person writes.
+const trackQ = [];
+function track(path, event){ try { const g = window.goatcounter; if (g && g.count) g.count({ path, title: path, event: !!event }); else if (window.LETTERTIDE_STATS && trackQ.length < 50) trackQ.push([path, event]); } catch {} }
+window.lettertideFlush = () => trackQ.splice(0).forEach(a => track(...a));
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
 function thanksgiving(y){ const d = new Date(y, 10, 1); const first = (4 - d.getDay() + 7) % 7 + 1; return new Date(y, 10, first + 21, 9); }
 function nextThanksgiving(){ const n = new Date(); let t = thanksgiving(n.getFullYear()); if (t < n) t = thanksgiving(n.getFullYear() + 1); return t; }
@@ -585,6 +589,7 @@ $('#f-send').onclick = async () => {
   try {
     if (fLock) { rec.box = await sealObj(letter, $('#f-pass').value); rec.hint = $('#f-hint').value.trim(); } else rec.letter = letter;
     await Store.add(rec);
+    track('future-letter', true);
     clearDraft(['f-body','f-food','f-friend','f-song','f-be','f-guess','f-hint']); $('#f-pass').value = ''; delete draft.chain;
     $('#f-done-title').textContent = `See you on ${fmt(d)}!`;
     $('#f-done-sub').textContent = rec.deliverTo ? `Your letter is floating away. In ${Math.round((d - Date.now()) / DAY).toLocaleString()} days it will arrive at ${rec.deliverTo}.` : `Your letter is floating away. In ${Math.round((d - Date.now()) / DAY).toLocaleString()} days it will be waiting in My mailbox on this page. Come back to open it!`;
@@ -710,6 +715,7 @@ $('#p-send').onclick = async () => {
   const rec = { id: uid(), kind:'people', created: Date.now(), ...c, deliver: pWhen === 0 ? Date.now() : at };
   try {
     await Store.add(rec);
+    track('postcard-made/' + (rec.occasion || 'other'), true);
     clearDraft(['p-to','p-body']);
     const now = pWhen === 0;
     $('#p-done-title').textContent = now ? 'Your postcard is ready!' : `Saved for ${fmt(rec.deliver)}!`;
@@ -959,6 +965,7 @@ function shareButtons(box, rec){
   const msg = el('p', { className:'note', role:'status', style:'flex-basis:100%' });
   const name = `postcard-for-${(rec.to || 'you').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
   async function savePicture(blob, quiet){
+    track('postcard-saved', true);
     if (Store.downloads) { try { await Store.downloads.save({ filename:name, data:blob }); msg.className = 'ok'; msg.textContent = quiet || 'Saved! Now open Messages, WhatsApp or your email, attach the picture, and send it.'; } catch (e) { if (e.code !== 'declined') { msg.className = 'err'; msg.textContent = 'Saving pictures isn’t available here. Open Lettertide on your phone to send it.'; } } }
     else { const a = el('a', { href: URL.createObjectURL(blob), download: name }); document.body.append(a); a.click(); a.remove(); msg.className = 'ok'; msg.textContent = quiet || 'Saved! Now open Messages, WhatsApp or your email, attach the picture, and send it.'; }
   }
@@ -970,7 +977,7 @@ function shareButtons(box, rec){
       if (navigator.canShare && navigator.canShare({ files:[file] })) {
         try {
           await navigator.share({ files:[file], title:`A postcard for ${rec.to}`, text:`A postcard for you${rec.from ? ' from ' + rec.from : ''}` });
-          msg.className = 'ok'; msg.textContent = 'Sent! 💌'; rec.sent = Date.now(); Store.update(rec.id, { sent: rec.sent }).catch(() => {}); refreshBadge();
+          track('postcard-sent', true); msg.className = 'ok'; msg.textContent = 'Sent! 💌'; rec.sent = Date.now(); Store.update(rec.id, { sent: rec.sent }).catch(() => {}); refreshBadge();
         } catch (e) { if (e.name === 'AbortError') msg.textContent = ''; else await savePicture(blob); }
       } else await savePicture(blob, 'This device can’t open the share menu, so we saved the postcard picture. Attach it in Messages, WhatsApp or your email.');
     } finally { send.disabled = false; }
@@ -1033,6 +1040,7 @@ $('#s-send').onclick = async () => {
   box.textContent = ''; paper.textContent = reply; box.append(paper, el('div', { className:'actions' }, readAloud(() => paper.textContent)));
   $('#s-cap').textContent = 'Special delivery from the North Pole!';
   $('#s-done-title').textContent = `Santa wrote back to ${name}!`;
+  track('santa-letter', true);
   try { await Store.add({ id: uid(), kind:'santa', created: Date.now(), deliver: Date.now(), name, age, body, reply }); clearDraft(['s-body']); refreshBadge(); }
   catch (e) { box.append(el('p', { className:'err', textContent: 'Santa\'s reply couldn\'t be saved to your mailbox: ' + (e.message || 'try again later.') })); }
   btn.disabled = false;
@@ -1227,6 +1235,7 @@ function show(){
   $$('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== v);
   if (W[v] && (W[v].i >= W[v].steps.length - 1 || !W[v].touched)) { W[v].touched = true; W[v].go(0); }
   if (v === 'mailbox') renderMailbox();
+  if (v !== 'read') track(v === 'home' ? '/' : '/' + v);
   window.scrollTo(0, 0);
 }
 addEventListener('hashchange', show);

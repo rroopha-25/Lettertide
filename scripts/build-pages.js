@@ -5,7 +5,8 @@
 const fs = require('node:fs'), path = require('node:path');
 const root = path.join(__dirname, '..'), out = path.join(root, '_site');
 const SITE = process.env.SITE_URL || 'https://rroopha-25.github.io/Lettertide/';
-let page = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
+const STATS = process.env.GOATCOUNTER || 'lettertide'; // free, cookie-free visit counts at https://<code>.goatcounter.com
+let page =fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
 
 const take = re => { const m = page.match(re); if (m) page = page.replace(m[0], ''); return m ? m[0] : ''; };
 const title = take(/<title>[\s\S]*?<\/title>\s*/) || '<title>Lettertide</title>';
@@ -32,6 +33,8 @@ ${title.trim()}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#FBF4E6">
 <link rel="icon" href="${icon}">
+<script>window.LETTERTIDE_STATS = 1</script>
+<script data-goatcounter="https://${STATS}.goatcounter.com/count" data-goatcounter-settings='{"no_onload":true}' async src="//gc.zgo.at/count.js" onload="window.lettertideFlush && lettertideFlush()"></script>
 ${fonts.join('\n')}
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
