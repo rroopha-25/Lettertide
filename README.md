@@ -21,7 +21,7 @@ Lettertide brings every letter that matters into one bright, friendly place, whe
 | | A typical future-letter site | Lettertide |
 |---|---|---|
 | **Who you can write to** | Yourself | Future you, anyone you love, and Santa |
-| **Made for** | Adults who like to write | Kids and grown-ups: one question per screen, big buttons, idea starters |
+| **Made for** | Adults who like to write | Kids and grown-ups: one question per screen, big buttons, idea starters, talk instead of typing, and read-aloud |
 | **Look and feel** | A form | A real letter: airmail stripes, stamps, handwriting, and a bottle floating out to sea |
 | **When it arrives** | One date, one email | Months to 100 years later, on Thanksgiving, on any day, or right now |
 | **What comes back** | The letter | The letter, a time capsule shown "then and now", a guess to check, and a "write back" button that keeps the conversation going |
@@ -33,6 +33,7 @@ Lettertide brings every letter that matters into one bright, friendly place, whe
 ### What makes it special
 
 - **Three kinds of letters, one home.** Future me, Someone special, and Santa all live in the same mailbox.
+- **Talk instead of typing.** Kids who can't write yet tap the microphone and say their letter; it appears as written sentences. A **Read it to me** button reads Santa's reply and arrived letters out loud for kids who can't read yet.
 - **Made for small hands.** One question at a time, giant tap targets, a progress trail of dots, and idea buttons like *"Right now I love…"* or *"This year I'm thankful for you because…"* for when a child gets stuck.
 - **Letters that answer back.** A future letter brings back a time capsule (favorite food, best friend, what I want to be) beside empty boxes for who you are now, asks whether your guess came true, and lets you write back to the future.
 - **Santa writes back, safely.** Santa never promises a specific present, never asks for an address or school, never suggests keeping secrets, and gently tells a child to talk to a trusted grown-up if they mention being hurt or scared.

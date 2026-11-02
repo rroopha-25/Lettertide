@@ -112,6 +112,17 @@ textarea.write{width:100%;font:400 25px/1.6 var(--f-hand);color:var(--ink);backg
 .note{font-size:15px;color:var(--muted);margin:0}
 .ok{color:var(--mint);font-weight:800}
 
+/* voice */
+.talk{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.mic{font:700 19px var(--f-display);display:inline-flex;align-items:center;gap:10px;border:3px solid var(--ink);background:var(--surface);color:var(--ink);border-radius:999px;padding:12px 22px 12px 16px;cursor:pointer;box-shadow:0 4px 0 var(--shadow);min-height:58px}
+.mic svg{width:28px;height:28px;color:var(--red)}
+.mic.on{background:var(--red);border-color:var(--red);color:#FFFDF8;animation:listen 1.2s ease-in-out infinite}
+.mic.on svg{color:#FFFDF8}
+@keyframes listen{50%{box-shadow:0 0 0 8px color-mix(in srgb,var(--red) 30%,transparent)}}
+.heard{font:400 22px/1.3 var(--f-hand);color:var(--muted);flex:1 1 200px;min-width:0}
+.speak svg{width:22px;height:22px;vertical-align:-4px;margin-right:6px}
+@media (prefers-reduced-motion:reduce){.mic.on{animation:none}}
+
 /* card designer */
 .swatches{display:flex;flex-wrap:wrap;gap:10px}
 .sw{width:58px;height:58px;border-radius:18px;border:3px solid var(--line);cursor:pointer;background:var(--s)}
@@ -232,6 +243,7 @@ footer{padding-block:10px 40px;text-align:center;color:var(--muted);font-size:15
     <p class="sub">Tell future you about today. Anything is fine!</p>
     <label for="f-body" class="sr">Your letter</label>
     <textarea id="f-body" class="write" data-draft placeholder="Dear future me,"></textarea>
+    <div class="talk" data-talk="f-body" hidden><button type="button" class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span class="lbl">Talk instead of typing</span></button><span class="heard" aria-live="polite"></span></div>
     <div class="ideas" data-for="f-body"><span>Ideas:</span>
       <button type="button" class="idea">Right now I love…</button><button type="button" class="idea">I'm really good at…</button><button type="button" class="idea">I hope you…</button><button type="button" class="idea">Something funny that happened:</button><button type="button" class="idea">A question for you:</button>
     </div>
@@ -309,6 +321,7 @@ footer{padding-block:10px 40px;text-align:center;color:var(--muted);font-size:15
     <h2 id="p-write-title">Write your letter</h2>
     <label for="p-body" class="sr">Your letter</label>
     <textarea id="p-body" class="write" data-draft></textarea>
+    <div class="talk" data-talk="p-body" hidden><button type="button" class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span class="lbl">Talk instead of typing</span></button><span class="heard" aria-live="polite"></span></div>
     <div class="ideas" data-for="p-body" id="p-ideas"></div>
     <p class="err" role="status"></p>
     <div class="next-row"><button class="big go" type="button" data-next>Next</button></div>
@@ -359,6 +372,7 @@ footer{padding-block:10px 40px;text-align:center;color:var(--muted);font-size:15
     <h2>Write to Santa</h2>
     <label for="s-body" class="sr">Your letter to Santa</label>
     <textarea id="s-body" class="write" data-draft placeholder="Dear Santa,"></textarea>
+    <div class="talk" data-talk="s-body" hidden><button type="button" class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span class="lbl">Talk instead of typing</span></button><span class="heard" aria-live="polite"></span></div>
     <div class="ideas" data-for="s-body"><span>Ideas:</span>
       <button type="button" class="idea">This year I was good at…</button><button type="button" class="idea">Something kind I did:</button><button type="button" class="idea">I would love…</button><button type="button" class="idea">My family and I…</button><button type="button" class="idea">A question for you:</button><button type="button" class="idea">Say hi to Rudolph!</button>
     </div>
@@ -738,7 +752,7 @@ $('#s-send').onclick = async () => {
       reply = r.text.trim();
     } else reply = santaTemplate(name, body);
   } catch (e) { reply = santaTemplate(name, body); }
-  box.textContent = ''; paper.textContent = reply; box.append(paper);
+  box.textContent = ''; paper.textContent = reply; box.append(paper, el('div', { className:'actions' }, readAloud(() => paper.textContent)));
   $('#s-cap').textContent = 'Special delivery from the North Pole!';
   $('#s-done-title').textContent = `Santa wrote back to ${name}!`;
   try { await Store.add({ id: uid(), kind:'santa', created: Date.now(), deliver: Date.now(), name, age, body, reply }); clearDraft(['s-body']); refreshBadge(); }
@@ -830,7 +844,7 @@ async function openItem(r){
   const now = Date.now();
   if (r.kind === 'santa') {
     const card = readShell('var(--santa)', `${r.name}'s letter to Santa`);
-    card.append(el('p', { className:'note', textContent: fmt(r.created) }), el('div', { className:'parch', textContent: r.body }), el('h2', { textContent:'Santa wrote back' }), el('div', { className:'parch santa', textContent: r.reply }), el('div', { className:'actions' }, deleteBtn(r)));
+    card.append(el('p', { className:'note', textContent: fmt(r.created) }), el('div', { className:'parch', textContent: r.body }), el('h2', { textContent:'Santa wrote back' }), el('div', { className:'parch santa', textContent: r.reply }), el('div', { className:'actions' }, readAloud(() => r.reply), deleteBtn(r)));
     return;
   }
   if (r.kind === 'people') {
@@ -864,7 +878,7 @@ function showFuture(r, l){
   if (!r.opened && !r.sample) { r.opened = Date.now(); Store.update(r.id, { opened: r.opened }).catch(() => {}); refreshBadge(); }
   const yrs = (r.deliver - r.created) / DAY / 365.25;
   const card = readShell('var(--sky)', `A letter from ${fmt(r.created)}`);
-  card.append(el('p', { className:'sub', textContent: (r.sample ? 'Example letter. ' : '') + `It floated at sea for ${yrs >= 1 ? yrs.toFixed(1) + ' years' : Math.max(1, Math.round(yrs * 12)) + ' months'}.` }), el('div', { className:'parch', textContent: l.body }));
+  card.append(el('p', { className:'sub', textContent: (r.sample ? 'Example letter. ' : '') + `It floated at sea for ${yrs >= 1 ? yrs.toFixed(1) + ' years' : Math.max(1, Math.round(yrs * 12)) + ' months'}.` }), el('div', { className:'parch', textContent: l.body }), el('div', { className:'actions' }, readAloud(() => l.body)));
   const caps = CAPS.filter(([k]) => l.capsule?.[k]);
   if (caps.length) { card.append(el('h2', { textContent:'Then and now' })); caps.forEach(([k, q]) => card.append(el('div', { className:'tn' }, el('div', { className:'q', textContent:q }), el('div', { className:'then', textContent:l.capsule[k] }), el('input', { type:'text', className:'field', id:'now-' + k, placeholder:'And now?', 'aria-label': q + ' now' })))); }
   if (l.guess) {
@@ -875,6 +889,46 @@ function showFuture(r, l){
   wb.onclick = () => { $('#f-body').value = `Dear future me,\n\nA letter from ${fmt(r.created)} just washed ashore! Here's my answer:\n\n`; draft.chain = (r.chain || 1) + 1; saveDraft(); location.hash = 'future'; };
   card.append(el('div', { className:'actions' }, wb, deleteBtn(r)));
 }
+
+/* ================= voice: talk instead of typing, and read it to me ================= */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, recBox = null;
+function addSpoken(ta, t){
+  t = t.trim(); if (!t) return;
+  let s = t.charAt(0).toUpperCase() + t.slice(1); if (!/[.!?]$/.test(s)) s += '.';
+  const base = ta.value.replace(/[ \t]*$/, '');
+  ta.value = base + (base && !base.endsWith('\n') ? ' ' : '') + s;
+  ta.scrollTop = ta.scrollHeight; saveDraft();
+}
+function stopTalking(){ if (rec) { try { rec.abort(); } catch {} } }
+if (SR) $$('[data-talk]').forEach(box => {
+  box.hidden = false;
+  const btn = $('.mic', box), label = $('.lbl', box), heard = $('.heard', box), ta = document.getElementById(box.dataset.talk);
+  btn.onclick = () => {
+    if (rec && recBox === box) { rec.stop(); return; }
+    stopTalking();
+    const r = new SR(); r.lang = navigator.language || 'en-US'; r.interimResults = true; r.continuous = true;
+    let problem = '';
+    rec = r; recBox = box; btn.classList.add('on'); label.textContent = 'Listening… tap to stop'; heard.textContent = 'Say your letter out loud.';
+    r.onresult = e => { let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) addSpoken(ta, t); else interim += t; } heard.textContent = interim; };
+    r.onerror = e => { problem = (e.error === 'not-allowed' || e.error === 'service-not-allowed') ? 'The microphone is blocked. Allow it in your browser, or type instead.' : e.error === 'no-speech' ? 'I didn’t hear anything. Tap the button and try again.' : e.error === 'aborted' ? '' : 'Talking stopped. Tap the button to try again.'; };
+    r.onend = () => { btn.classList.remove('on'); label.textContent = 'Talk instead of typing'; heard.textContent = problem; if (rec === r) { rec = null; recBox = null; } };
+    try { r.start(); } catch { btn.classList.remove('on'); label.textContent = 'Talk instead of typing'; heard.textContent = 'Talking isn’t available here. Try typing instead.'; rec = null; }
+  };
+});
+const SPEAKER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+function readAloud(getText){
+  if (!('speechSynthesis' in window)) return '';
+  const b = el('button', { type:'button', className:'soft speak', innerHTML: SPEAKER }); const t = document.createTextNode('Read it to me'); b.append(t);
+  b.onclick = () => {
+    if (speechSynthesis.speaking) { speechSynthesis.cancel(); t.textContent = 'Read it to me'; return; }
+    const u = new SpeechSynthesisUtterance(getText()); u.rate = 0.92; u.lang = navigator.language || 'en-US';
+    u.onend = u.onerror = () => { t.textContent = 'Read it to me'; };
+    speechSynthesis.speak(u); t.textContent = 'Stop reading';
+  };
+  return b;
+}
+addEventListener('hashchange', () => { stopTalking(); try { speechSynthesis.cancel(); } catch {} });
 
 /* ================= routing ================= */
 function show(){
