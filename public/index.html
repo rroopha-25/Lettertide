@@ -491,7 +491,7 @@ async function initStore(){
 const whereText = kind => ({
   claude: 'Saved privately in your Claude account.',
   server: Store.email ? (kind === 'people' ? `Signed in as ${Store.email}.` : 'Saved privately until its day.') : '',
-  local: 'Saved in this browser only.'
+  local: 'Saved on this device.'
 }[Store.mode] || '');
 function renderSignins(){
   $$('[data-signin]').forEach(slot => {
@@ -510,10 +510,10 @@ function renderSignins(){
   $('#f-email-wrap').hidden = Store.mode !== 'server' || !Store.email;
   if (Store.mode === 'server' && Store.email && !$('#f-email').value) $('#f-email').value = Store.email;
   if (Store.mode !== 'server') {
-    const warn = 'Heads up: this page can\'t send emails. Your letter will wait in My mailbox here until its day, so come back to open it. To get letters by email, use the full Lettertide website.';
+    const warn = Store.mode === 'claude' ? 'Heads up: this page can\'t send emails. Your letter will wait in My mailbox here until its day, so come back to open it.' : 'For now your letter is saved on this device and waits in My mailbox until its day. Email delivery is coming soon.';
     $('#f-where').textContent = warn; $('#f-where').style.cssText = 'background:color-mix(in srgb,var(--sun) 30%,var(--surface));padding:12px 14px;border-radius:14px;color:var(--ink);font-weight:700';
   }
-  $('#foot').textContent = { claude:'Your letters are private to you and saved in your Claude account.', server:'Lettertide keeps your letters safe until the day they arrive.', local:'Letters are saved in this browser. Sign in to claude.ai to keep them on every device.' }[Store.mode] || 'Lettertide';
+  $('#foot').textContent = { claude:'Your letters are private to you and saved in your Claude account.', server:'Lettertide keeps your letters safe until the day they arrive.', local:'Your letters are saved on this device. Email delivery is coming soon.' }[Store.mode] || 'Lettertide';
 }
 
 /* ================= encryption for secret-word letters ================= */
@@ -587,7 +587,7 @@ $('#f-send').onclick = async () => {
     await Store.add(rec);
     clearDraft(['f-body','f-food','f-friend','f-song','f-be','f-guess','f-hint']); $('#f-pass').value = ''; delete draft.chain;
     $('#f-done-title').textContent = `See you on ${fmt(d)}!`;
-    $('#f-done-sub').textContent = rec.deliverTo ? `Your letter is floating away. In ${Math.round((d - Date.now()) / DAY).toLocaleString()} days it will arrive at ${rec.deliverTo}.` : `Your letter is floating away. In ${Math.round((d - Date.now()) / DAY).toLocaleString()} days it will be waiting in My mailbox on this page. This page can't send emails, so remember to come back!`;
+    $('#f-done-sub').textContent = rec.deliverTo ? `Your letter is floating away. In ${Math.round((d - Date.now()) / DAY).toLocaleString()} days it will arrive at ${rec.deliverTo}.` : `Your letter is floating away. In ${Math.round((d - Date.now()) / DAY).toLocaleString()} days it will be waiting in My mailbox on this page. Come back to open it!`;
     W.future.go(4);
     const bob = $('[data-wiz="future"] .bob'); bob.classList.remove('sail'); void bob.offsetWidth; setTimeout(() => bob.classList.add('sail'), 900);
     refreshBadge();

@@ -96,6 +96,10 @@ Every letter in one place: floating to the future, arrived, Santa's replies, and
 - **Limits** on sign-in emails, cards (20 a day) and Santa replies keep it from being misused.
 - **Your data is yours.** Download every letter at any time, or delete your account and everything in it.
 
+## Try it
+
+**Website:** [rroopha-25.github.io/Lettertide](https://rroopha-25.github.io/Lettertide/) (hosted free on GitHub Pages). Letters are saved on your device for now; email delivery switches on once the free backend below is connected.
+
 ## How it works
 
 - **Website:** one HTML page (no framework) with a step-by-step wizard for each kind of letter. Postcards are painted in the browser on a canvas and shared with the Web Share API.
