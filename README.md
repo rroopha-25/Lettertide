@@ -26,7 +26,7 @@ Lettertide brings every letter that matters into one bright, friendly place, whe
 | **When it arrives** | One date, one email | Months to 100 years later, on Thanksgiving, on any day, or right now |
 | **What comes back** | The letter | The letter, a time capsule shown "then and now", a guess to check, and a "write back" button that keeps the conversation going |
 | **Santa** | Not included | Santa replies right away, with child-safe rules built in |
-| **Cards for others** | Usually not included | Colorful cards with stickers, emailed under the writer's name, and replies go back to the family |
+| **Cards for others** | Usually not included | Cards for festivals across cultures and everyday moments, delivered on the day under the writer's name, and replies go back to the family |
 | **Built to last** | Depends on one email address | The whole letter travels inside the arrival email, a yearly "still you?" check, an optional backup contact, and a full export |
 | **Privacy** | Varies | Optional secret word that encrypts the letter in your own browser |
 
@@ -37,7 +37,7 @@ Lettertide brings every letter that matters into one bright, friendly place, whe
 - **Made for small hands.** One question at a time, giant tap targets, a progress trail of dots, and idea buttons like *"Right now I love…"* or *"This year I'm thankful for you because…"* for when a child gets stuck.
 - **Letters that answer back.** A future letter brings back a time capsule (favorite food, best friend, what I want to be) beside empty boxes for who you are now, asks whether your guess came true, and lets you write back to the future.
 - **Santa writes back, safely.** Santa never promises a specific present, never asks for an address or school, never suggests keeping secrets, and gently tells a child to talk to a trusted grown-up if they mention being hurt or scared.
-- **Cards for real moments.** Thank you, Thanksgiving (it works out the date for you), birthday, get well, I love you, or just because. Pick a color and a sticker, then send it now or schedule it.
+- **Cards for every culture's big days.** Diwali, Eid al-Fitr and Eid al-Adha, Hanukkah, Christmas, Kwanzaa, Lunar New Year, Holi, Raksha Bandhan, Pongal and Sankranti, Thanksgiving, Mother's and Father's Day, plus everyday thank-yous and birthdays. Each festival comes with its own greetings, colors and sticker (a diya for Diwali, a crescent moon for Eid, a menorah for Hanukkah, a lantern for Lunar New Year), and Lettertide works out the date so the card arrives on the day.
 - **Sent as you, answered to you.** Grandma sees the card from "Maya via Lettertide", and when she taps Reply, it goes straight to Maya's family.
 - **An airmail look.** Red-and-blue airmail stripes, envelope cream and stamp yellow on every screen and every email, with the three choices drawn as postage stamps. It works in light and dark mode.
 
@@ -59,6 +59,8 @@ Years later, the letter washes ashore with everything you packed:
 ### Someone special
 
 Make a card, decorate it, and send it now or on the day that matters.
+
+<p align="center"><img src="docs/screenshots/festivals.png" alt="Choosing an occasion: everyday cards and festivals like Diwali, Hanukkah, Christmas, Eid and Lunar New Year, each with its next date" width="700"></p>
 
 <p><img src="docs/screenshots/card.png" alt="Designing a kraft-paper Thanksgiving card for Grandma with a leaf sticker" width="49%"> <img src="docs/screenshots/card-when.png" alt="Choosing to send the card on Thanksgiving to Grandma's email" width="49%"></p>
 

@@ -123,6 +123,11 @@ textarea.write{width:100%;font:400 25px/1.6 var(--f-hand);color:var(--ink);backg
 .speak svg{width:22px;height:22px;vertical-align:-4px;margin-right:6px}
 @media (prefers-reduced-motion:reduce){.mic.on{animation:none}}
 
+/* occasions */
+.occ{display:grid;gap:10px}
+.occ-head{margin:6px 0 0;font:700 15px var(--f-display);color:var(--muted)}
+.occ .tiles{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+
 /* card designer */
 .swatches{display:flex;flex-wrap:wrap;gap:10px}
 .sw{width:58px;height:58px;border-radius:18px;border:3px solid var(--line);cursor:pointer;background:var(--s)}
@@ -220,7 +225,7 @@ footer{padding-block:10px 40px;text-align:center;color:var(--muted);font-size:15
     </a>
     <a class="door" href="#people" style="--c:var(--yellow);--on:#16305F">
       <div class="pic"><svg viewBox="0 0 120 100" aria-hidden="true"><rect x="18" y="26" width="84" height="58" rx="4" fill="#FFFDF8"/><path d="M18 26h84v6H18z" fill="#E23B3B"/><path d="M18 78h84v6H18z" fill="#1F4FA0"/><path d="M18 34l42 26 42-26" fill="none" stroke="#16305F" stroke-width="3" stroke-linejoin="round"/><path d="M60 72s-12-7-12-15c0-3.5 2.6-6 6-6 2.7 0 4.8 1.7 6 3.5 1.2-1.8 3.3-3.5 6-3.5 3.4 0 6 2.5 6 6 0 8-12 15-12 15z" fill="#E23B3B"/></svg></div>
-      <span class="stamp-val" aria-hidden="true">2¢</span><b>Someone special</b><span>Thank you notes, Thanksgiving, birthdays and more.</span>
+      <span class="stamp-val" aria-hidden="true">2¢</span><b>Someone special</b><span>Thank-yous, birthdays, Diwali, Eid, Hanukkah, Christmas and more.</span>
     </a>
     <a class="door" href="#santa" style="--c:var(--santa)">
       <div class="pic"><svg viewBox="0 0 120 100" aria-hidden="true"><path d="M30 74C34 40 52 18 78 20c10 1 18 8 20 18-8-6-16-6-20 2-6 12-8 24-8 34z" fill="#FFFDF8"/><rect x="22" y="70" width="64" height="16" rx="8" fill="#FFFDF8"/><circle cx="100" cy="42" r="10" fill="#FFFDF8"/><g fill="#F5B935"><circle cx="16" cy="22" r="3"/><circle cx="104" cy="80" r="3"/><circle cx="12" cy="60" r="2.5"/></g></svg></div>
@@ -312,7 +317,7 @@ footer{padding-block:10px 40px;text-align:center;color:var(--muted);font-size:15
       <div><label class="lbl" for="p-to">Their name</label><input id="p-to" class="field" type="text" data-draft placeholder="Grandma, Mr. Lee…"></div>
       <div><label class="lbl" for="p-from">Your name</label><input id="p-from" class="field" type="text" data-draft placeholder="Maya" autocomplete="given-name"></div>
     </div>
-    <div><span class="lbl">What kind of letter?</span><div class="tiles" id="p-occ"></div></div>
+    <div><span class="lbl">What kind of letter?</span><div id="p-occ" class="occ"></div></div>
     <p class="err" role="status"></p>
     <div class="next-row"><button class="big go" type="button" data-next>Next</button></div>
   </section>
@@ -581,14 +586,34 @@ $('#f-send').onclick = async () => {
 };
 
 /* ---------- Someone special ---------- */
+// Festivals that follow lunar or lunisolar calendars use checked dates (deliver on the main day, 8am local).
+// Fixed or rule-based days are worked out every year. When no upcoming date is known, people pick a day.
+const ymd = (y, m, d) => new Date(y, m - 1, d, 8);
+const nthWeekday = (y, m, wd, n) => { const f = new Date(y, m - 1, 1, 8); return new Date(y, m - 1, 1 + (wd - f.getDay() + 7) % 7 + 7 * (n - 1), 8); };
+const yearly = fn => () => { const n = new Date(), y = n.getFullYear(); let d = fn(y); if (d < n) d = fn(y + 1); return d; };
+const listed = (...dates) => () => dates.map(([y, m, d]) => ymd(y, m, d)).find(d => d > new Date()) || null;
 const OCC = [
-  { label:'Thank you', key:'thanks', ideas:['Thank you so much for…','You make me feel…','I’ll never forget when…','You are the best because…'] },
-  { label:'Thanksgiving', key:'thanksgiving', ideas:['This year I’m thankful for you because…','My favorite memory with you is…','I love it when we…','Happy Thanksgiving!'] },
-  { label:'Happy birthday', key:'birthday', ideas:['Happy birthday!','I hope this year you…','My favorite thing about you is…','Let’s celebrate by…'] },
-  { label:'Get well soon', key:'getwell', ideas:['I hope you feel better soon.','I’m thinking about you.','When you’re better let’s…','Here’s a joke for you:'] },
-  { label:'I love you', key:'love', ideas:['I love you because…','You always…','Remember when…','Hugs and kisses!'] },
-  { label:'Just because', key:'hello', ideas:['I was thinking about you!','Guess what happened today:','I miss you.','Write back soon!'] }
+  { group:'everyday', label:'Thank you', key:'thanks', ideas:['Thank you so much for…','You make me feel…','I’ll never forget when…','You are the best because…'] },
+  { group:'everyday', label:'Happy birthday', key:'birthday', ideas:['Happy birthday!','I hope this year you…','My favorite thing about you is…','Let’s celebrate by…'] },
+  { group:'everyday', label:'Get well soon', key:'getwell', ideas:['I hope you feel better soon.','I’m thinking about you.','When you’re better let’s…','Here’s a joke for you:'] },
+  { group:'everyday', label:'I love you', key:'love', ideas:['I love you because…','You always…','Remember when…','Hugs and kisses!'] },
+  { group:'everyday', label:'Just because', key:'hello', ideas:['I was thinking about you!','Guess what happened today:','I miss you.','Write back soon!'] },
+  { group:'festival', label:'Diwali', key:'diwali', theme:'sun', sticker:'diya', next: listed([2026,11,8],[2027,10,29]), ideas:['Happy Diwali!','May your home be full of light because…','My favorite part of Diwali is…','I can’t wait to light diyas with you.'] },
+  { group:'festival', label:'Thanksgiving', key:'thanksgiving', theme:'fall', sticker:'leaf', next: yearly(y => nthWeekday(y, 11, 4, 4)), ideas:['This year I’m thankful for you because…','My favorite memory with you is…','I love it when we…','Happy Thanksgiving!'] },
+  { group:'festival', label:'Hanukkah', key:'hanukkah', theme:'ocean', sticker:'menorah', when:'On the first night', next: listed([2026,12,4],[2027,12,24]), ideas:['Happy Hanukkah!','My favorite night of Hanukkah is…','I love lighting the candles with you.','Let’s eat latkes together!'] },
+  { group:'festival', label:'Christmas', key:'christmas', theme:'berry', sticker:'tree', next: yearly(y => ymd(y, 12, 25)), ideas:['Merry Christmas!','My favorite Christmas memory is…','This Christmas I’m thankful for you because…','I hope your holidays are cozy!'] },
+  { group:'festival', label:'Kwanzaa', key:'kwanzaa', theme:'fall', sticker:'star', next: yearly(y => ymd(y, 12, 26)), ideas:['Happy Kwanzaa!','Habari gani!','This year I want to practice unity by…','I’m proud of our family because…'] },
+  { group:'festival', label:'Pongal and Sankranti', key:'pongal', theme:'sun', sticker:'sun', next: yearly(y => ymd(y, 1, 14)), ideas:['Happy Pongal!','Happy Sankranti!','This harvest I’m thankful for…','I love flying kites with you.'] },
+  { group:'festival', label:'Lunar New Year', key:'lunar', theme:'berry', sticker:'lantern', next: listed([2027,2,6]), ideas:['Happy Lunar New Year!','This year I wish you…','My favorite New Year tradition is…','I can’t wait to celebrate with you.'] },
+  { group:'festival', label:'Eid al-Fitr', key:'eidfitr', theme:'grape', sticker:'moon', moon:true, next: listed([2027,3,9]), ideas:['Eid Mubarak!','My favorite part of Eid is…','I’m grateful for you because…','I can’t wait for the Eid feast!'] },
+  { group:'festival', label:'Holi', key:'holi', theme:'berry', sticker:'flower', next: listed([2027,3,22]), ideas:['Happy Holi!','My favorite color is…','I love celebrating with you because…','Let’s play with colors together!'] },
+  { group:'festival', label:'Mother’s Day', key:'mothers', theme:'mint', sticker:'flower', next: yearly(y => nthWeekday(y, 5, 0, 2)), ideas:['Happy Mother’s Day!','You make me feel loved when…','My favorite thing we do together is…','Thank you for…'] },
+  { group:'festival', label:'Eid al-Adha', key:'eidadha', theme:'grape', sticker:'moon', moon:true, next: listed([2027,5,16]), ideas:['Eid Mubarak!','This Eid I want to share…','I’m thankful for our family because…','Sending you love and blessings.'] },
+  { group:'festival', label:'Father’s Day', key:'fathers', theme:'ocean', sticker:'star', next: yearly(y => nthWeekday(y, 6, 0, 3)), ideas:['Happy Father’s Day!','You always help me…','My favorite thing we do together is…','Thank you for…'] },
+  { group:'festival', label:'Raksha Bandhan', key:'rakhi', theme:'berry', sticker:'star', next: listed([2027,8,17],[2028,8,5]), ideas:['Happy Raksha Bandhan!','You always look out for me by…','My favorite memory with you is…','Thank you for being my sibling.'] }
 ];
+// festivals in the order they next come around
+const FEST_ORDER = () => OCC.filter(o => o.group === 'festival').sort((a, b) => (a.next() || Infinity) - (b.next() || Infinity));
 const THEMES = [
   { key:'sun',   bg:'#F5B935', ink:'#16305F', acc:'#E23B3B' },
   { key:'berry', bg:'#E23B3B', ink:'#FFFDF8', acc:'#F5B935' },
@@ -602,16 +627,38 @@ const STICKERS = {
   star:'M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z',
   leaf:'M20 3C9 3 3 9 3 16c0 1.6.3 3 .9 4.2C5 16.4 7.6 13 12 11c-3.4 2.6-5.6 6-6.4 9.8 1.3.5 2.6.7 4 .7C17 21.5 21.5 15 20 3z',
   flower:'M12 2.5a3.5 3.5 0 0 1 3.4 4.3A3.5 3.5 0 1 1 17 13a3.5 3.5 0 1 1-5 4.9A3.5 3.5 0 1 1 7 13a3.5 3.5 0 1 1 1.6-6.2A3.5 3.5 0 0 1 12 2.5zm0 7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z',
+  diya:'M2.5 13h19c-.8 4.4-4.6 7-9.5 7s-8.7-2.6-9.5-7zM12 2.5c2.3 2.7 3 4.8 3 6.4a3 3 0 0 1-6 0c0-1.6.7-3.7 3-6.4z',
+  lantern:'M10 1.5h4v2.5h-4zM6.5 5h11c1.7 2.1 2.5 4.4 2.5 7s-.8 4.9-2.5 7h-11C4.8 16.9 4 14.6 4 12s.8-4.9 2.5-7zM10 20h4v2.5h-4z',
+  moon:'M11 2.5a9.5 9.5 0 1 0 9.8 12.2A7.6 7.6 0 1 1 11 2.5zM18.5 3l1 2.3 2.5.2-1.9 1.6.6 2.4-2.2-1.3-2.2 1.3.6-2.4L15 5.5l2.5-.2z',
+  menorah:'M11 2h2v3.5h-2zM2 7h2v3H2zM5 7h2v3H5zM8 7h2v3H8zM14 7h2v3h-2zM17 7h2v3h-2zM20 7h2v3h-2zM11 7h2v4h-2zM2 11h20v2H2zM11 14h2v5h-2zM7 19.5h10V22H7z',
+  tree:'M12 1.5l5.5 7.5h-3.2l4.4 6h-3.4l4.2 6H4.5l4.2-6H5.3l4.4-6H6.5zM10.8 21.5h2.4V23h-2.4z',
   sun:'M12 6.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11zM11 0h2v4.5h-2zm0 19.5h2V24h-2zM0 11h4.5v2H0zm19.5 0H24v2h-4.5zM3.2 4.6l1.4-1.4 3.2 3.2-1.4 1.4zm13 13l1.4-1.4 3.2 3.2-1.4 1.4zM3.2 19.4l3.2-3.2 1.4 1.4-3.2 3.2zm13-13l3.2-3.2 1.4 1.4-3.2 3.2z'
 };
 const stickerSvg = (k, fill = 'currentColor', cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${STICKERS[k]}" fill="${fill}" fill-rule="evenodd"/></svg>`;
-let pOcc = draft.pOcc ?? 0, pTheme = draft.pTheme ?? 0, pSticker = draft.pSticker ?? 'heart', pWhen = 0;
-tiles($('#p-occ'), OCC, i => { pOcc = i; draft.pOcc = i; ls.set(DRAFT, draft); if (OCC[i].key === 'thanksgiving' && pTheme === 0) { pTheme = 3; draft.pTheme = 3; } }, pOcc);
+let pOcc = Math.max(0, OCC.findIndex(o => o.key === draft.pOccKey)), pTheme = draft.pTheme ?? 0, pSticker = draft.pSticker ?? 'heart', pWhen = 0;
+function renderOccasions(){
+  const box = $('#p-occ'); box.textContent = '';
+  const pick = o => { pOcc = OCC.indexOf(o); draft.pOccKey = o.key;
+    if (o.theme) { pTheme = Math.max(0, THEMES.findIndex(t => t.key === o.theme)); draft.pTheme = pTheme; }
+    if (o.sticker) { pSticker = o.sticker; draft.pSticker = pSticker; }
+    ls.set(DRAFT, draft); $$('.tile', box).forEach(x => x.setAttribute('aria-pressed', x.dataset.key === o.key)); };
+  const group = (title, list) => {
+    const g = el('div', { className:'tiles' });
+    list.forEach(o => { const d = o.next?.();
+      const t = el('button', { type:'button', className:'tile', 'data-key':o.key, 'aria-pressed':String(OCC[pOcc] === o) }, o.label, d ? el('small', { textContent: fmtShort(d).replace(/,? \d{4}$/, '') }) : '');
+      t.onclick = () => pick(o); g.append(t); });
+    box.append(el('p', { className:'occ-head', textContent:title }), g);
+  };
+  group('Everyday', OCC.filter(o => o.group === 'everyday'));
+  group('Festivals and holidays', FEST_ORDER());
+}
+renderOccasions();
 THEMES.forEach((t, i) => { const b = el('button', { type:'button', className:'sw', style:`--s:${t.bg}`, 'aria-label':t.key + ' card', 'aria-pressed':String(i === pTheme) }); b.onclick = () => { pTheme = i; draft.pTheme = i; ls.set(DRAFT, draft); $$('#p-theme .sw').forEach(x => x.setAttribute('aria-pressed', x === b)); paintPreview($('#p-preview'), currentCard()); }; $('#p-theme').append(b); });
 Object.keys(STICKERS).forEach(k => { const b = el('button', { type:'button', className:'stk', 'aria-label':k + ' sticker', 'aria-pressed':String(k === pSticker), innerHTML: stickerSvg(k) }); b.onclick = () => { pSticker = k; draft.pSticker = k; ls.set(DRAFT, draft); $$('#p-sticker .stk').forEach(x => x.setAttribute('aria-pressed', x === b)); paintPreview($('#p-preview'), currentCard()); }; $('#p-sticker').append(b); });
 function pWhenItems(){
   const items = [{ label:'Right now', at: () => Date.now() }];
-  if (OCC[pOcc].key === 'thanksgiving') items.push({ label:'On Thanksgiving', small: fmtShort(nextThanksgiving()), at: () => nextThanksgiving().getTime() });
+  const o = OCC[pOcc], fd = o.next?.();
+  if (fd) items.push({ label: o.when ? `${o.when} of ${o.label}` : `On ${o.label}`, small: fmtShort(fd) + (o.moon ? ' (moon may shift it a day)' : ''), at: () => o.next().getTime() });
   else items.push({ label:'Tomorrow morning', small:'', at: () => { const d = new Date(Date.now() + DAY); d.setHours(8, 0, 0, 0); return d.getTime(); } });
   items.push({ label:'Pick a day', pick:true, at: () => { const v = $('#p-custom').value; return v ? new Date(v + 'T08:00').getTime() : null; } });
   return items;
@@ -634,7 +681,7 @@ wizard('people', {
       if (!$('#p-body').value.trim()) { $('#p-body').value = `Dear ${$('#p-to').value.trim()},\n`; saveDraft(); }
       const box = $('#p-ideas'); box.textContent = ''; box.append(el('span', { textContent:'Ideas:' }), ...o.ideas.map(t => el('button', { type:'button', className:'idea', textContent:t })));
     }
-    if (n === 2) { $$('#p-theme .sw').forEach((x, k) => x.setAttribute('aria-pressed', k === pTheme)); paintPreview($('#p-preview'), currentCard()); }
+    if (n === 2) { $$('#p-theme .sw').forEach((x, k) => x.setAttribute('aria-pressed', k === pTheme)); $$('#p-sticker .stk').forEach(x => x.setAttribute('aria-pressed', x.getAttribute('aria-label') === pSticker + ' sticker')); paintPreview($('#p-preview'), currentCard()); }
     if (n === 3) { pWhen = 0; const items = pWhenItems(); tiles($('#p-when'), items, i => { pWhen = i; $('#p-custom-wrap').hidden = !items[i].pick; pShowDate(); }, 0); $('#p-custom-wrap').hidden = true; pShowDate(); }
   },
   check: n => { if (n === 0 && !$('#p-to').value.trim()) return 'Who is your letter for? Type their name.'; if (n === 0 && !$('#p-from').value.trim()) return 'Type your name so they know who it\'s from.'; if (n === 1 && $('#p-body').value.trim().split(/\s+/).length < 3) return 'Write a little more. Try an idea button!'; },

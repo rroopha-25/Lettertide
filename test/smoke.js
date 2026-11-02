@@ -50,6 +50,11 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const later = await post('/api/letters', { kind: 'people', deliver: Date.now() + 10 * 864e5, to: 'Mr. Lee', body: 'Thank you for teaching me', occasion: 'thanks', recipientEmail: 'lee@example.com' });
   assert.equal(later.r.status, 201);
   assert.equal((await post('/api/letters', { kind: 'people', deliver: Date.now(), to: 'X', body: 'hi there you', recipientEmail: 'nope' })).r.status, 400);
+  // festival cards: occasion and sticker accepted, subject matches
+  const diwali = await post('/api/letters', { kind: 'people', deliver: Date.now(), to: 'Nani', from: 'Maya', body: 'Happy Diwali Nani!', theme: 'sun', sticker: 'diya', occasion: 'diwali', recipientEmail: 'nani@example.com' });
+  assert.equal(diwali.r.status, 201); assert.equal(diwali.j.sticker, 'diya'); assert.equal(diwali.j.occasion, 'diwali');
+  await wait(200);
+  assert.match(outbox.find(m => m.to === 'nani@example.com').subject, /Happy Diwali card for you from Maya/);
   // HTML in a card is escaped in the email
   await post('/api/letters', { kind: 'people', deliver: Date.now(), to: '<b>Bo</b>', body: '<script>x</script> hello friend', recipientEmail: 'bo@example.com' });
   await wait(200);
@@ -59,7 +64,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const s = await post('/api/santa', { name: 'Maya', age: '7', body: 'Dear Santa, I would love a red bike. I helped my mom bake.' });
   assert.match(s.j.reply, /Dear Maya/); assert.match(s.j.reply, /red bike/); assert.match(s.j.reply, /Santa/);
   assert.equal((await post('/api/letters', { kind: 'santa', name: 'Maya', age: '7', body: 'Dear Santa…', reply: s.j.reply })).r.status, 201);
-  assert.equal((await call('/api/letters')).j.length, 6);
+  assert.equal((await call('/api/letters')).j.length, 7);
 
   // time-travel: scheduled card arrives
   await db.run('UPDATE mail SET deliver = ? WHERE id = ?', Date.now() - 1000, later.j.id);
@@ -90,10 +95,10 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   assert.equal(cron.status, 200); assert('future' in (await cron.json()));
 
   // export + delete everything
-  assert.equal((await call('/api/export')).j.letters.length, 6);
+  assert.equal((await call('/api/export')).j.letters.length, 7);
   assert.equal((await call('/api/me', { method: 'DELETE' })).r.status, 200);
   assert.equal((await db.get('SELECT COUNT(*) n FROM mail')).n, 0);
 
   srv.close();
-  console.log('All checks passed: sign-in, scheduler link, future letters, cards now + scheduled (escaped, reply-to parent), Santa reply, yearly check-in, delivery + backup, export, deletion.');
+  console.log('All checks passed: sign-in, scheduler link, festival cards, future letters, cards now + scheduled (escaped, reply-to parent), Santa reply, yearly check-in, delivery + backup, export, deletion.');
 })().catch(e => { console.error(e); process.exit(1); });

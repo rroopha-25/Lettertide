@@ -114,8 +114,9 @@ app.get('/api/confirm', async (req, res) => {
 
 /* ---------- letters ---------- */
 const isBox = b => b && typeof b === 'object' && ['ct', 'iv', 'salt'].every(k => typeof b[k] === 'string' && b[k].length < 400000);
-const THEMES = ['sun', 'berry', 'ocean', 'fall', 'mint', 'grape'], STICKERS = ['heart', 'star', 'leaf', 'flower', 'sun'];
-const OCCASIONS = ['thanks', 'thanksgiving', 'birthday', 'getwell', 'love', 'hello'];
+const THEMES = ['sun', 'berry', 'ocean', 'fall', 'mint', 'grape'];
+const STICKERS = ['heart', 'star', 'leaf', 'flower', 'diya', 'lantern', 'moon', 'menorah', 'tree', 'sun'];
+const OCCASIONS = ['thanks', 'birthday', 'getwell', 'love', 'hello', 'thanksgiving', 'diwali', 'hanukkah', 'christmas', 'kwanzaa', 'pongal', 'lunar', 'eidfitr', 'holi', 'mothers', 'eidadha', 'fathers', 'rakhi'];
 
 function clean(b) {
   const kind = b.kind;

@@ -51,7 +51,10 @@ const templates = {
   },
   card: c => {
     const T = { sun: ['#F5B935', '#16305F'], berry: ['#E23B3B', '#FFFDF8'], ocean: ['#1F4FA0', '#FFFDF8'], fall: ['#C98D4B', '#2E1A08'], mint: ['#FFFDF8', '#16305F'], grape: ['#16305F', '#FFFDF8'] }[c.theme] || ['#F5B935', '#16305F'];
-    const subj = { thanks: 'A thank-you card for you', thanksgiving: 'A Happy Thanksgiving card for you', birthday: 'A birthday card for you', getwell: 'A get-well card for you', love: 'A card full of love for you', hello: 'A card for you' }[c.occasion] || 'A card for you';
+    const subj = { thanks: 'A thank-you card for you', thanksgiving: 'A Happy Thanksgiving card for you', birthday: 'A birthday card for you', getwell: 'A get-well card for you', love: 'A card full of love for you', hello: 'A card for you',
+      diwali: 'A Happy Diwali card for you', hanukkah: 'A Happy Hanukkah card for you', christmas: 'A Merry Christmas card for you', kwanzaa: 'A Happy Kwanzaa card for you',
+      pongal: 'A Happy Pongal card for you', lunar: 'A Happy Lunar New Year card for you', eidfitr: 'An Eid Mubarak card for you', eidadha: 'An Eid Mubarak card for you',
+      holi: 'A Happy Holi card for you', mothers: 'A Happy Mother’s Day card for you', fathers: 'A Happy Father’s Day card for you', rakhi: 'A Happy Raksha Bandhan card for you' }[c.occasion] || 'A card for you';
     return {
       subject: c.from ? `${subj} from ${c.from}` : `${subj}, ${c.to}!`,
       text: `To ${c.to}\n\n${c.body}\n\n${c.from ? `From ${c.from}\n\n` : ''}(Reply to this email to write back${c.from ? ' to ' + c.from : ''}.)`,
