@@ -1415,28 +1415,73 @@ function showFuture(r, l){
 
 /* ================= voice: talk instead of typing, and read it to me ================= */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let rec = null, recBox = null;
-function addSpoken(ta, t){
-  t = t.trim(); if (!t) return;
-  let s = t.charAt(0).toUpperCase() + t.slice(1); if (!/[.!?]$/.test(s)) s += '.';
-  const base = ta.value.replace(/[ \t]*$/, '');
-  ta.value = base + (base && !base.endsWith('\n') ? ' ' : '') + s;
-  ta.scrollTop = ta.scrollHeight; saveDraft();
+// Words go into the letter live while the child talks, and stay there when they stop.
+// iPhone Safari often never marks words "final", so we never wait for that.
+// Android Chrome repeats words in continuous mode, so there we listen phrase by phrase and restart.
+const ANDROID = /Android/i.test(navigator.userAgent);
+function tidySpeech(s, done){
+  s = s.replace(/\s+/g, ' ').trim(); if (!s) return '';
+  s = s.charAt(0).toUpperCase() + s.slice(1);
+  s = s.replace(/([.!?]\s+)([a-z])/g, (m, p, c) => p + c.toUpperCase()).replace(/\bi\b/g, 'I').replace(/\b(santa|rudolph|mrs claus|christmas|grandma|grandpa)\b/g, w => w.replace(/\b\w/g, c => c.toUpperCase()));
+  return done && !/[.!?]$/.test(s) ? s + '.' : s;
 }
-function stopTalking(){ if (rec) { try { rec.abort(); } catch {} } }
+function joinSpoken(results){
+  let txt = '', prev = '';
+  for (let i = 0; i < results.length; i++) {
+    const t = (results[i][0]?.transcript || '').trim(); if (!t) continue;
+    if (prev && t.toLowerCase().startsWith(prev.toLowerCase())) txt = txt.slice(0, txt.length - prev.length) + t; // repeated, growing phrase
+    else if (prev && prev.toLowerCase().startsWith(t.toLowerCase())) continue;
+    else txt += (txt ? ' ' : '') + t;
+    prev = t;
+  }
+  return txt;
+}
+let talkStop = null;
+function stopTalking(){ if (talkStop) talkStop(true); }
 if (SR) $$('[data-talk]').forEach(box => {
   box.hidden = false;
   const btn = $('.mic', box), label = $('.lbl', box), heard = $('.heard', box), ta = document.getElementById(box.dataset.talk);
   btn.onclick = () => {
-    if (rec && recBox === box) { rec.stop(); return; }
+    if (talkStop && box.classList.contains('talking')) { talkStop(); return; }
     stopTalking();
-    const r = new SR(); r.lang = navigator.language || 'en-US'; r.interimResults = true; r.continuous = true;
-    let problem = '';
-    rec = r; recBox = box; btn.classList.add('on'); label.textContent = 'Listening… tap to stop'; heard.textContent = 'Say your letter out loud.';
-    r.onresult = e => { let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) addSpoken(ta, t); else interim += t; } heard.textContent = interim; };
-    r.onerror = e => { problem = (e.error === 'not-allowed' || e.error === 'service-not-allowed') ? 'The microphone is blocked. Allow it in your browser, or type instead.' : e.error === 'no-speech' ? 'I didn’t hear anything. Tap the button and try again.' : e.error === 'aborted' ? '' : 'Talking stopped. Tap the button to try again.'; };
-    r.onend = () => { btn.classList.remove('on'); label.textContent = 'Talk instead of typing'; heard.textContent = problem; if (rec === r) { rec = null; recBox = null; } };
-    try { r.start(); } catch { btn.classList.remove('on'); label.textContent = 'Talk instead of typing'; heard.textContent = 'Talking isn’t available here. Try typing instead.'; rec = null; }
+    const base = ta.value.replace(/[ \t]+$/, '');
+    let committed = '', live = '', wanted = true, problem = '', r = null, gotWords = false, quiet = 0;
+    const render = done => {
+      const said = tidySpeech((committed + ' ' + live).trim(), done);
+      ta.value = base + (base && said ? (base.endsWith('\n') ? '' : ' ') : '') + said;
+      ta.scrollTop = ta.scrollHeight; saveDraft();
+    };
+    const finish = () => {
+      render(true); box.classList.remove('talking'); btn.classList.remove('on'); label.textContent = 'Talk instead of typing';
+      heard.textContent = problem || (gotWords ? 'Got it! Tap again to say more.' : 'I didn’t hear any words. Tap and try again, a little louder.');
+      if (talkStop === stop) talkStop = null;
+    };
+    const stop = (quiet) => { wanted = false; if (quiet) problem = problem || ' '; try { r && r.stop(); } catch { finish(); } };
+    const listen = () => {
+      r = new SR(); r.lang = navigator.language || 'en-US'; r.interimResults = true; r.continuous = !ANDROID; r.maxAlternatives = 1;
+      r.onresult = e => { live = joinSpoken(e.results); if (live) { gotWords = true; heard.textContent = 'Writing what you say…'; } render(false); };
+      r.onerror = e => {
+        if (e.error === 'no-speech' && ANDROID && gotWords) return;
+        problem = e.error === 'not-allowed' ? 'The microphone is blocked. Allow it for this website in your browser settings, then try again.'
+          : e.error === 'service-not-allowed' ? 'Talking needs Dictation. On iPhone, turn on Settings › General › Keyboard › Enable Dictation, then try again.'
+          : e.error === 'audio-capture' ? 'No microphone found. Check your microphone, or type instead.'
+          : e.error === 'network' ? 'Talking needs the internet. Check your connection and try again.'
+          : e.error === 'no-speech' ? 'I didn’t hear anything. Tap and try again, a little louder.'
+          : e.error === 'aborted' ? '' : 'Talking stopped. Tap the button to try again.';
+        wanted = false;
+      };
+      r.onend = () => {
+        if (live) { committed = (committed ? committed + ' ' : '') + tidySpeech(live, ANDROID); quiet = 0; } else quiet++;
+        live = '';
+        if (wanted && ANDROID && quiet < 3) { try { listen(); return; } catch {} }
+        finish();
+      };
+      r.start();
+    };
+    try {
+      listen(); talkStop = stop;
+      box.classList.add('talking'); btn.classList.add('on'); label.textContent = 'Listening… tap to stop'; heard.textContent = 'Say your letter out loud. Your words will appear above.';
+    } catch { heard.textContent = 'Talking isn’t available in this browser. Try Chrome or Safari, or type instead.'; }
   };
 });
 const SPEAKER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
