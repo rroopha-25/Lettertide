@@ -61,7 +61,12 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const s = await post('/api/santa', { name: 'Maya', age: '7', body: 'Dear Santa, I would love a red bike. I helped my mom bake.' });
   assert.match(s.j.reply, /Dear Maya/); assert.match(s.j.reply, /red bike/); assert.match(s.j.reply, /Santa/);
   assert.equal((await post('/api/letters', { kind: 'santa', name: 'Maya', age: '7', body: 'Dear Santa…', reply: s.j.reply })).r.status, 201);
-  assert.equal((await call('/api/letters')).j.length, 7);
+  const xm = await post('/api/letters', { kind: 'santa', deliver: Date.now() + 20 * 864e5, name: 'Maya', age: '7', body: 'Dear Santa, hi!', reply: s.j.reply });
+  assert.equal(xm.r.status, 201); assert(xm.j.deliver > Date.now() + 19 * 864e5 && !xm.j.delivered, 'Christmas-morning reply waits');
+  assert.equal((await call('/api/letters')).j.length, 8);
+  await db.run('UPDATE mail SET deliver = ? WHERE id = ?', Date.now() - 1000, xm.j.id);
+  assert.equal((await tick()).santa, 1); assert.equal(outbox.at(-1).to, 'parent@example.com'); assert.match(outbox.at(-1).subject, /Santa wrote back to Maya/);
+  assert.equal((await tick()).santa, undefined, 'Christmas email sent once');
 
   // time-travel: the scheduled postcard's day arrives -> reminder goes to the sender only
   await db.run('UPDATE mail SET deliver = ? WHERE id = ?', Date.now() - 1000, later.j.id);
@@ -93,10 +98,10 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   assert.equal(cron.status, 200); assert('future' in (await cron.json()));
 
   // export + delete everything
-  assert.equal((await call('/api/export')).j.letters.length, 7);
+  assert.equal((await call('/api/export')).j.letters.length, 8);
   assert.equal((await call('/api/me', { method: 'DELETE' })).r.status, 200);
   assert.equal((await db.get('SELECT COUNT(*) n FROM mail')).n, 0);
 
   srv.close();
-  console.log('All checks passed: sign-in, scheduler link, postcards never email recipients, day-of reminders to sender, festival and global occasions, future letters, Santa reply, yearly check-in, delivery + backup, export, deletion.');
+  console.log('All checks passed: sign-in, scheduler link, postcards never email recipients, day-of reminders to sender, festival and global occasions, future letters, Santa reply (now or on Christmas morning), yearly check-in, delivery + backup, export, deletion.');
 })().catch(e => { console.error(e); process.exit(1); });

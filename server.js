@@ -154,14 +154,15 @@ app.post('/api/letters', auth, async (req, res) => {
   let data; try { data = clean(b); } catch (e) { return res.status(400).json({ error: String(e) }); }
   const t = now();
   let deliver = Number(b.deliver);
-  if (b.kind === 'santa') deliver = t;
+  // Santa's reply comes right away, or waits for Christmas morning (sent in Nov/Dec for this Christmas)
+  if (b.kind === 'santa') deliver = deliver > t + 60e3 && deliver < t + 60 * DAY ? deliver : t;
   else if (b.kind === 'people') { if (!(deliver >= t - 5 * 60e3 && deliver < t + 5 * 365 * DAY)) return res.status(400).json({ error: 'Pick a day within the next 5 years.' }); deliver = Math.max(deliver, t); }
   else if (!(deliver > t + 60e3 && deliver < t + 101 * 365 * DAY)) return res.status(400).json({ error: 'Pick a day between tomorrow and 100 years from now.' });
   const count = (await db.get('SELECT COUNT(*) n FROM mail WHERE user_id = ?', req.user.id)).n;
   if (count >= 1000) return res.status(400).json({ error: 'Your mailbox is full. Delete some old letters first.' });
   const id = crypto.randomUUID();
   const recipient = b.kind === 'future' ? data.deliverTo || req.user.email : null;
-  await db.run('INSERT INTO mail (id, user_id, kind, created, deliver, data, recipient_email, delivered_at) VALUES (?,?,?,?,?,?,?,?)', id, req.user.id, b.kind, t, deliver, JSON.stringify(data), recipient, b.kind === 'santa' || (b.kind === 'people' && deliver <= t + 60e3) ? t : null);
+  await db.run('INSERT INTO mail (id, user_id, kind, created, deliver, data, recipient_email, delivered_at) VALUES (?,?,?,?,?,?,?,?)', id, req.user.id, b.kind, t, deliver, JSON.stringify(data), recipient, (b.kind === 'santa' || b.kind === 'people') && deliver <= t + 60e3 ? t : null);
   res.status(201).json(toClient(await db.get('SELECT * FROM mail WHERE id = ?', id)));
 });
 app.patch('/api/letters/:id', auth, async (req, res) => {
@@ -225,6 +226,10 @@ async function tick() {
           // remind the sender (never the recipient) that today is the day to send their postcard
           const card = JSON.parse(m.data);
           if (!card.sent) { await mailer.send(m.email, mailer.templates.sendReminder({ ...card, link: `${BASE_URL}/#mailbox` })); out.cards++; }
+        } else if (m.kind === 'santa') {
+          // Christmas morning: tell the grown-up that Santa's reply has arrived (the reply itself stays a surprise on the site)
+          const d = JSON.parse(m.data);
+          await mailer.send(m.email, mailer.templates.santaArrived({ name: d.name, link: `${BASE_URL}/#mailbox` })); out.santa = (out.santa || 0) + 1;
         }
         await db.run('UPDATE mail SET delivered_at = ? WHERE id = ?', t, m.id);
       } catch (e) { console.error('delivery failed', m.id, e.message); }

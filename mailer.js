@@ -110,6 +110,11 @@ const templates = {
     text: `You made a postcard for ${c.to}. Today's the day to send it. Open Lettertide on your phone and tap Send postcard: ${c.link}`,
     html: wrap(`Time to send ${c.to}'s postcard`, `You made a postcard for <b>${esc(c.to)}</b>, and today's the day.<br><br>Open your mailbox on Lettertide on your phone and tap <b>Send postcard</b>. It goes from your own phone or email, so ${esc(c.to)} sees it's from you.`, { href: c.link, label: 'Open my mailbox' })
   }),
+  santaArrived: ({ name, link }) => ({
+    subject: `Merry Christmas! Santa wrote back to ${name}`,
+    text: `Santa's reply to ${name} arrived at the North Pole post office this morning. Open it together on Lettertide: ${link}`,
+    html: wrap(`Santa wrote back to ${name}!`, `Merry Christmas! Santa's reply to <b>${esc(name)}</b> arrived this morning, sealed with a red wax seal.<br><br>Open it together on Lettertide, and tap <b>Read it to me</b> to hear it out loud.`, { href: link, label: "Open Santa's letter" })
+  }),
   arrivedBackup: ({ owner, link }) => ({
     subject: 'A Lettertide letter has arrived for someone who listed you',
     text: `${owner} listed you as their backup contact. A letter they wrote to themselves has arrived. Please let them know: ${link}`,

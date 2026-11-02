@@ -132,6 +132,45 @@ textarea.write{width:100%;font:400 25px/1.6 var(--f-hand);color:var(--ink);backg
 .door.season .pic{background-image:radial-gradient(circle at 20% 30%,#fff 0 2px,transparent 3px),radial-gradient(circle at 70% 20%,#fff 0 2px,transparent 3px),radial-gradient(circle at 45% 70%,#fff 0 1.5px,transparent 2.5px),radial-gradient(circle at 85% 65%,#fff 0 2px,transparent 3px);background-color:color-mix(in srgb,#fff 18%,transparent)}
 @media (max-width:640px){.doors .door.season{grid-template-columns:1fr}.door.season .pic{grid-row:auto;height:118px;margin-bottom:8px}.door.season b{font-size:28px}}
 
+/* North Pole scene with Santa */
+.np{position:relative;overflow:hidden;border-radius:22px;border:4px solid var(--ink);background:linear-gradient(180deg,#0B1630,#16305F 55%,#2A5BB5);aspect-ratio:2/1;width:100%;box-sizing:border-box}
+@media (max-width:640px){.np{aspect-ratio:16/10}}
+.np > svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.np .snow i{animation-name:npfall}
+@keyframes npfall{to{transform:translateY(420px)}}
+.door .pic.has-np{display:block;position:relative;padding:0;overflow:hidden;background:none}
+.door .pic .np{position:absolute;inset:0;border:0;border-radius:12px;aspect-ratio:auto;min-height:0}
+.door .pic .np svg{height:100%;width:100%}
+.np .wave{transform-box:fill-box;transform-origin:0% 100%;animation:wave 1.4s ease-in-out infinite alternate}
+@keyframes wave{from{transform:rotate(-14deg)}to{transform:rotate(16deg)}}
+.np .jolly{animation:jolly 2.8s ease-in-out infinite}
+@keyframes jolly{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.np .blink{transform-box:fill-box;transform-origin:center;animation:blink 4.5s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+.np .sleigh{animation:sleigh 15s linear infinite}
+@keyframes sleigh{0%{transform:translate(-190px,96px)}55%{transform:translate(800px,18px)}100%{transform:translate(800px,18px)}}
+.np .sleigh .bobs{animation:jolly 1.2s ease-in-out infinite}
+.np .tw{animation:tw 2.4s ease-in-out infinite alternate}
+@keyframes tw{to{opacity:.25}}
+.np .aurora{animation:aurora 9s ease-in-out infinite alternate}
+@keyframes aurora{to{transform:translateX(-40px) scaleY(1.15)}}
+.np .glow{animation:glow 3s ease-in-out infinite alternate}
+@keyframes glow{to{fill:#FFB84D}}
+.np .smoke{animation:smoke 4s ease-out infinite;opacity:0}
+@keyframes smoke{0%{transform:translate(0,0) scale(.5);opacity:.55}100%{transform:translate(10px,-30px) scale(1.2);opacity:0}}
+.np .ho{animation:ho 6s ease-in-out infinite;opacity:0}
+@keyframes ho{0%,8%{opacity:0;transform:translateY(6px)}14%,40%{opacity:1;transform:none}48%,100%{opacity:0}}
+.np .nose{animation:glow2 1s ease-in-out infinite alternate}
+@keyframes glow2{to{opacity:.4}}
+@media (prefers-reduced-motion:reduce){.np *{animation:none!important}.np .sleigh{transform:translate(120px,40px)}.np .ho{opacity:1}.np .smoke{opacity:0}}
+.np .cap{position:absolute;left:0;right:0;top:12px;z-index:2;text-align:center;font:700 clamp(18px,3.4vw,26px) var(--f-display);color:#FFF4E2;text-shadow:0 2px 8px #0B1630}
+.np .env{position:absolute;z-index:2;left:6%;bottom:16%;width:clamp(44px,9%,70px);animation:npfly 2.8s ease-in forwards}
+@keyframes npfly{0%{left:6%;bottom:16%;transform:rotate(-8deg)}60%{left:50%;bottom:62%;transform:rotate(10deg)}100%{left:76%;bottom:40%;transform:scale(.35);opacity:0}}
+.intro-np{margin:0;font:600 20px/1.4 var(--f-body);text-align:center}.intro-np b{display:block;font:700 clamp(24px,4vw,32px)/1.15 var(--f-display);color:var(--red);margin-bottom:4px}
+.sealed{display:grid;gap:14px;justify-items:center;text-align:center;padding:18px;border:3px dashed var(--line);border-radius:22px}
+.sealed svg{width:120px;height:auto}
+.sealed b{font:700 24px/1.2 var(--f-display)}
+
 /* occasions */
 .occ{display:grid;gap:10px}
 .occ-head{margin:6px 0 0;font:700 15px var(--f-display);color:var(--muted)}
@@ -239,7 +278,7 @@ footer{padding-block:10px 40px;text-align:center;color:var(--muted);font-size:15
       <span class="stamp-val" aria-hidden="true">2¢</span><b>Someone special</b><span>Thank-yous, birthdays, Diwali, Eid, Hanukkah, Christmas and more.</span>
     </a>
     <a class="door" href="#santa" id="santa-door" style="--c:var(--santa)">
-      <div class="pic"><svg viewBox="0 0 120 100" aria-hidden="true"><path d="M30 74C34 40 52 18 78 20c10 1 18 8 20 18-8-6-16-6-20 2-6 12-8 24-8 34z" fill="#FFFDF8"/><rect x="22" y="70" width="64" height="16" rx="8" fill="#FFFDF8"/><circle cx="100" cy="42" r="10" fill="#FFFDF8"/><g fill="#F5B935"><circle cx="16" cy="22" r="3"/><circle cx="104" cy="80" r="3"/><circle cx="12" cy="60" r="2.5"/></g></svg></div>
+      <div class="pic has-np"><div class="np" data-np aria-hidden="true"></div></div>
       <span class="stamp-val" aria-hidden="true">North Pole</span><b>Santa</b><span>Tell Santa about your year. Santa writes back!</span>
     </a>
   </div>
@@ -378,6 +417,8 @@ footer{padding-block:10px 40px;text-align:center;color:var(--muted);font-size:15
   <div class="wiz-top"><button class="back" type="button" aria-label="Back" data-back><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button><div class="dots" aria-hidden="true"></div><div class="who"></div></div>
 
   <section class="card" data-step>
+    <div class="np" data-np aria-hidden="true"></div>
+    <p class="intro-np" id="s-intro" hidden><b>Send a letter to the North Pole.</b> Santa will write back with a surprise letter for Christmas morning!</p>
     <h2>Ho ho hello! What's your name?</h2>
     <div><label class="lbl" for="s-name">Your first name</label><input id="s-name" class="field" type="text" data-draft autocomplete="given-name"></div>
     <div><span class="lbl">How old are you?</span><div class="tiles" id="s-age"></div></div>
@@ -393,17 +434,16 @@ footer{padding-block:10px 40px;text-align:center;color:var(--muted);font-size:15
     <div class="ideas" data-for="s-body"><span>Ideas:</span>
       <button type="button" class="idea">This year I was good at…</button><button type="button" class="idea">Something kind I did:</button><button type="button" class="idea">I would love…</button><button type="button" class="idea">My family and I…</button><button type="button" class="idea">A question for you:</button><button type="button" class="idea">Say hi to Rudolph!</button>
     </div>
+    <div id="s-when-box" hidden><span class="lbl" style="font:700 18px var(--f-display);display:block;margin-bottom:8px">When should Santa's reply arrive?</span><div class="tiles" id="s-when"></div></div>
     <div data-signin></div>
     <p class="err" role="status"></p>
     <div class="next-row"><button class="big go" type="button" id="s-send">Mail it to the North Pole!</button></div>
   </section>
 
   <section class="card" data-step data-final hidden>
-    <div class="scene night" aria-hidden="true">
-      <div class="snow" id="snow"></div><div class="moon"></div><div class="cap" id="s-cap">Flying to the North Pole…</div>
-      <svg class="house" viewBox="0 0 120 90"><path d="M10 40L60 6l50 34z" fill="#FFFDF8"/><rect x="20" y="38" width="80" height="50" fill="#E23B3B"/><rect x="50" y="56" width="20" height="32" fill="#7A3B12"/><rect x="28" y="50" width="14" height="14" fill="#F5B935"/><rect x="78" y="50" width="14" height="14" fill="#F5B935"/></svg>
+    <div class="np" data-np aria-hidden="true">
+      <div class="cap" id="s-cap">Flying to the North Pole…</div>
       <svg class="env" viewBox="0 0 70 48"><rect x="2" y="2" width="66" height="44" rx="5" fill="#FFFDF8" stroke="#16305F" stroke-width="3"/><path d="M4 6l31 20 31-20" fill="none" stroke="#16305F" stroke-width="3"/><circle cx="35" cy="28" r="6" fill="#E23B3B"/></svg>
-      <div class="ground"></div>
     </div>
     <h2 id="s-done-title">Santa got your letter!</h2>
     <div id="s-reply"></div>
@@ -989,11 +1029,89 @@ function shareButtons(box, rec){
   box.append(send, save, copy, msg);
 }
 
+/* ---------- North Pole scene: Santa waving, sleigh flying past, workshop, striped pole, northern lights ---------- */
+function northPoleSVG(){
+  const stars = [[40,30],[95,58],[150,22],[212,44],[268,18],[318,52],[372,26],[430,40],[488,16],[540,48],[580,24],[64,92],[250,86],[520,88],[180,100]]
+    .map(([x, y], i) => `<circle class="tw" cx="${x}" cy="${y}" r="${i % 3 ? 1.6 : 2.4}" fill="#FFF4D6" style="animation-delay:-${(i * .37) % 2.4}s"/>`).join('');
+  const tree = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><rect x="-4" y="-6" width="8" height="12" fill="#5A3A1E"/><path d="M0-70L-26-24h52z" fill="#1A7F4E"/><path d="M0-52L-30-8h60z" fill="#167045"/><path d="M0-70l-9 15 5-2 4 5 4-5 5 2z M-26-24l8-4 6 4 6-4 6 4 6-4 6 4 6-4 8 4z" fill="#FFFDF8"/></g>`;
+  const stripes = [0,1,2,3,4,5,6,7].map(k => `<path d="M354 ${142 + k * 15}l12-7v7l-12 7z" fill="#E23B3B"/>`).join('');
+  const deer = x => `<g transform="translate(${x} 0)"><ellipse cx="0" cy="0" rx="12" ry="5.5" fill="#8B5A2B"/><path d="M8-3l6-8h7l-1 4-6 3z" fill="#8B5A2B"/><path d="M15-11l-2-7m0 3l-3-2m6 6l2-7m-1 3l3-2" stroke="#E9CFA6" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M-8 3l-5 7m8-7l2 7m9-7l-3 7m6-7l4 6" stroke="#8B5A2B" stroke-width="2.2" stroke-linecap="round"/></g>`;
+  return `<svg viewBox="0 0 600 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+  <path class="aurora" d="M-20 78Q90 30 200 72T400 58T640 44V104Q520 126 400 104T200 118T-20 124Z" fill="#3DDC97" opacity=".22"/>
+  <path class="aurora" style="animation-delay:-4s" d="M-20 50Q110 20 230 52T450 40T640 36V70Q520 92 420 74T210 86T-20 90Z" fill="#8FE3FF" opacity=".16"/>
+  ${stars}
+  <g class="sleigh"><g class="bobs">
+    <path d="M-40 4L12 4" stroke="#F5B935" stroke-width="1"/>
+    <g transform="translate(0 0)">${deer(0)}${deer(32)}${deer(64)}<circle class="nose" cx="85" cy="-8" r="3" fill="#FF4D4D"/></g>
+    <circle cx="-62" cy="-12" r="8" fill="#7A3B12"/>
+    <circle cx="-50" cy="-12" r="4.5" fill="#F6C9A8"/><path d="M-55-14q5-10 11-2z" fill="#E23B3B"/><circle cx="-43" cy="-15" r="1.8" fill="#fff"/><path d="M-54-10q4 6 8 0z" fill="#fff"/>
+    <path d="M-76-6h40q4 12-8 14h-28q-6-6-4-14z" fill="#E23B3B"/><path d="M-80 12h44q6 0 6-6" stroke="#F5B935" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  </g></g>
+  <path d="M0 214Q120 184 250 204T600 192V300H0Z" fill="#C9D8F5"/>
+  ${tree(30, 232, .9)}${tree(560, 226, .8)}
+  <g>
+    <rect x="178" y="134" width="16" height="30" fill="#7A3B12"/><rect x="174" y="129" width="24" height="8" rx="4" fill="#FFFDF8"/>
+    <circle class="smoke" cx="186" cy="122" r="5" fill="#fff"/><circle class="smoke" style="animation-delay:-1.3s" cx="186" cy="122" r="5" fill="#fff"/><circle class="smoke" style="animation-delay:-2.6s" cx="186" cy="122" r="5" fill="#fff"/>
+    <rect x="70" y="176" width="140" height="80" fill="#B8322E"/>
+    <path d="M58 182L140 128L222 182Z" fill="#7A3B12"/><path d="M60 180L140 128L220 180" stroke="#FFFDF8" stroke-width="10" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <rect class="glow" x="84" y="194" width="28" height="26" rx="3" fill="#FFD86B"/><rect class="glow" style="animation-delay:-1.5s" x="168" y="194" width="28" height="26" rx="3" fill="#FFD86B"/>
+    <path d="M98 194v26M84 207h28M182 194v26M168 207h28" stroke="#7A3B12" stroke-width="3"/>
+    <path d="M124 256v-34a16 16 0 0 1 32 0v34z" fill="#7A3B12"/><circle cx="140" cy="224" r="7" fill="none" stroke="#1A7F4E" stroke-width="4"/><circle cx="140" cy="230" r="2.6" fill="#E23B3B"/>
+  </g>
+  ${tree(250, 244, 1)}
+  <path d="M0 250Q150 236 300 248T600 244V300H0Z" fill="#F4F8FF"/>
+  <g>
+    <rect x="354" y="134" width="12" height="122" fill="#FFFDF8"/>${stripes}<circle cx="360" cy="128" r="9" fill="#F5B935"/>
+    <path d="M292 152h80v22h-80l-10-11z" fill="#FFFDF8" stroke="#7A3B12" stroke-width="2"/>
+    <text x="330" y="168" text-anchor="middle" font-family="Fredoka,Nunito,system-ui,sans-serif" font-weight="700" font-size="12.5" fill="#E23B3B">NORTH POLE</text>
+  </g>
+  <g class="ho"><rect x="398" y="118" width="74" height="26" rx="13" fill="#FFFDF8"/><path d="M450 142l8 10 2-12z" fill="#FFFDF8"/><text x="435" y="136" text-anchor="middle" font-family="Fredoka,Nunito,system-ui,sans-serif" font-weight="700" font-size="13" fill="#E23B3B">Ho ho ho!</text></g>
+  <g transform="translate(480 252)"><g class="jolly">
+    <ellipse cx="-12" cy="-4" rx="11" ry="6" fill="#1C2440"/><ellipse cx="12" cy="-4" rx="11" ry="6" fill="#1C2440"/>
+    <rect x="-18" y="-24" width="36" height="18" fill="#C42B2B"/>
+    <path d="M-26-66Q-42-50-37-36" stroke="#E23B3B" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="-37" cy="-33" r="7" fill="#1A7F4E"/>
+    <path d="M-30-22Q-35-62-18-72H18Q35-62 30-22Z" fill="#E23B3B"/>
+    <rect x="-32" y="-29" width="64" height="9" rx="4.5" fill="#FFFDF8"/><rect x="-4" y="-72" width="8" height="44" fill="#FFFDF8"/>
+    <rect x="-31" y="-47" width="62" height="8" fill="#1C2440"/><rect x="-7" y="-49" width="14" height="12" rx="2" fill="none" stroke="#F5B935" stroke-width="3"/>
+    <g class="wave"><path d="M24-66Q40-78 44-98" stroke="#E23B3B" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="44" cy="-96" r="6.5" fill="#FFFDF8"/><circle cx="45" cy="-104" r="7.5" fill="#1A7F4E"/></g>
+    <circle cx="0" cy="-88" r="15" fill="#F6C9A8"/>
+    <path d="M-17-92Q-22-64 0-56Q22-64 17-92Q10-79 0-81Q-10-79-17-92Z" fill="#FFFDF8"/>
+    <ellipse cx="-6" cy="-81" rx="7" ry="3.6" fill="#FFFDF8" transform="rotate(12 -6 -81)"/><ellipse cx="6" cy="-81" rx="7" ry="3.6" fill="#FFFDF8" transform="rotate(-12 6 -81)"/>
+    <circle cx="0" cy="-85" r="3.6" fill="#E8907A"/>
+    <circle cx="-10.5" cy="-86" r="3" fill="#F29C9C" opacity=".75"/><circle cx="10.5" cy="-86" r="3" fill="#F29C9C" opacity=".75"/>
+    <circle class="blink" cx="-6" cy="-92" r="2.1" fill="#1C2440"/><circle class="blink" cx="6" cy="-92" r="2.1" fill="#1C2440"/>
+    <path d="M-10-97q4-3 7 0M3-97q4-3 7 0" stroke="#FFFDF8" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M-16-101Q-9-131 14-127Q27-123 31-108L23-106Q17-115 16-101Z" fill="#E23B3B"/>
+    <rect x="-19" y="-106" width="38" height="10" rx="5" fill="#FFFDF8"/><circle cx="30" cy="-105" r="6.5" fill="#FFFDF8"/>
+  </g></g>
+</svg>`;
+}
+$$('[data-np]').forEach(box => {
+  box.insertAdjacentHTML('afterbegin', northPoleSVG());
+  const snow = el('div', { className:'snow' });
+  for (let i = 0; i < 22; i++) snow.append(el('i', { style:`left:${(i * 37) % 100}%;animation-duration:${4 + (i % 5)}s;animation-delay:-${(i * 1.3) % 6}s;width:${3 + (i % 3) * 2}px;height:${3 + (i % 3) * 2}px` }));
+  box.insertBefore(snow, box.children[1]);
+});
+
 /* ---------- Santa ---------- */
+// From November 1 until Christmas Eve, Santa's reply can wait to arrive on Christmas morning.
+function christmasMorning(){ const n = new Date(); const x = new Date(n.getFullYear(), 11, 25, 6); return n.getMonth() >= 10 && n < new Date(n.getFullYear(), 11, 25) ? x : null; }
+let sOnXmas = !!christmasMorning();
+if (christmasMorning()) {
+  $('#s-when-box').hidden = false;
+  tiles($('#s-when'), [{ label:'🎄 Christmas morning', small:'Wake up to Santa’s letter' }, { label:'⚡ Right away', small:'Read it today' }], i => { sOnXmas = i === 0; }, 0);
+}
+const SEAL = '<svg viewBox="0 0 120 84" aria-hidden="true"><rect x="3" y="3" width="114" height="78" rx="8" fill="#FFFDF8" stroke="#16305F" stroke-width="4"/><path d="M6 8l54 38 54-38" fill="none" stroke="#16305F" stroke-width="4" stroke-linejoin="round"/><circle cx="60" cy="48" r="13" fill="#E23B3B"/><path d="M60 40v16M52 48h16M54.5 42.5l11 11M65.5 42.5l-11 11" stroke="#FFFDF8" stroke-width="2.4" stroke-linecap="round"/></svg>';
+function sealedNote(when){
+  const days = Math.max(0, Math.ceil((when - Date.now()) / DAY));
+  return el('div', { className:'sealed' }, el('div', { innerHTML: SEAL }),
+    el('b', { textContent:'Santa’s reply arrives on Christmas morning' }),
+    el('span', { className:'countdown', style:'justify-self:center;background:var(--red);color:#FFFDF8', textContent: days ? `${days} sleep${days === 1 ? '' : 's'} to go` : 'Almost here!' }),
+    el('p', { className:'note', style:'margin:0', textContent: Store.mode === 'server' && Store.email ? `It will be waiting in My mailbox, and we’ll email ${Store.email} that morning.` : 'It will be waiting in My mailbox on this device. Come back on Christmas morning to open it!' }));
+}
 const AGES = ['3','4','5','6','7','8','9','10','11','12','Teen','Grown-up'].map(a => ({ label:a }));
 let sAge = draft.sAge ?? 3;
 tiles($('#s-age'), AGES, i => { sAge = i; draft.sAge = i; ls.set(DRAFT, draft); }, sAge);
-for (let i = 0; i < 26; i++) $('#snow').append(el('i', { style:`left:${(i * 37) % 100}%;animation-duration:${3 + (i % 5)}s;animation-delay:-${i % 4}s;width:${4 + (i % 3) * 2}px;height:${4 + (i % 3) * 2}px` }));
 wizard('santa', {
   enter: n => { if (n === 1 && !$('#s-body').value.trim()) { $('#s-body').value = 'Dear Santa,\n'; saveDraft(); } },
   check: n => { if (n === 0 && !$('#s-name').value.trim()) return 'What\'s your first name?'; },
@@ -1033,15 +1151,24 @@ $('#s-send').onclick = async () => {
   try {
     if (Store.mode === 'server') reply = (await Store.santa({ name, age, body })).reply;
     else if (Store.sample) {
-      const r = await Store.sample(SANTA_RULES(name, age, body), { modelTier:'default', cache:false, onText: ({ text }) => { if (!paper.isConnected) { box.textContent = ''; box.append(paper); } paper.textContent = text; } });
+      const r = await Store.sample(SANTA_RULES(name, age, body), { modelTier:'default', cache:false, onText: ({ text }) => { if (sOnXmas && christmasMorning()) return; if (!paper.isConnected) { box.textContent = ''; box.append(paper); } paper.textContent = text; } });
       reply = r.text.trim();
     } else reply = santaTemplate(name, body);
   } catch (e) { reply = santaTemplate(name, body); }
-  box.textContent = ''; paper.textContent = reply; box.append(paper, el('div', { className:'actions' }, readAloud(() => paper.textContent)));
-  $('#s-cap').textContent = 'Special delivery from the North Pole!';
-  $('#s-done-title').textContent = `Santa wrote back to ${name}!`;
-  track('santa-letter', true);
-  try { await Store.add({ id: uid(), kind:'santa', created: Date.now(), deliver: Date.now(), name, age, body, reply }); clearDraft(['s-body']); refreshBadge(); }
+  const xmas = sOnXmas && christmasMorning();
+  box.textContent = '';
+  if (xmas) {
+    const days = Math.ceil((xmas - Date.now()) / DAY);
+    box.append(sealedNote(xmas));
+    $('#s-cap').textContent = 'Your letter reached the North Pole!';
+    $('#s-done-title').textContent = `Santa got your letter, ${name}!`;
+  } else {
+    paper.textContent = reply; box.append(paper, el('div', { className:'actions' }, readAloud(() => paper.textContent)));
+    $('#s-cap').textContent = 'Special delivery from the North Pole!';
+    $('#s-done-title').textContent = `Santa wrote back to ${name}!`;
+  }
+  track(xmas ? 'santa-letter/christmas' : 'santa-letter', true);
+  try { await Store.add({ id: uid(), kind:'santa', created: Date.now(), deliver: xmas ? xmas.getTime() : Date.now(), name, age, body, reply }); clearDraft(['s-body']); refreshBadge(); }
   catch (e) { box.append(el('p', { className:'err', textContent: 'Santa\'s reply couldn\'t be saved to your mailbox: ' + (e.message || 'try again later.') })); }
   btn.disabled = false;
 };
@@ -1052,11 +1179,13 @@ const ICON = {
   people: '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="8" width="34" height="24" rx="3" fill="#F5B935"/><path d="M4 11l16 11 16-11" fill="none" stroke="#16305F" stroke-width="3"/><path d="M20 30s-5-3-5-6.2c0-1.5 1.1-2.6 2.5-2.6 1.1 0 2 .7 2.5 1.5.5-.8 1.4-1.5 2.5-1.5 1.4 0 2.5 1.1 2.5 2.6C25 27 20 30 20 30z" fill="#E23B3B"/></svg>',
   santa: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 30C10 16 18 6 28 7c4 .4 7 3.4 8 7-3-2.4-6.5-2.4-8 .8C25 20 24 25 24 30z" fill="#E23B3B"/><rect x="5" y="28" width="24" height="7" rx="3.5" fill="#FFFDF8" stroke="#E23B3B" stroke-width="1.5"/><circle cx="36" cy="16" r="4" fill="#FFFDF8" stroke="#E23B3B" stroke-width="1.5"/></svg>'
 };
-async function refreshBadge(){ try { const l = await Store.list(); const n = l.filter(r => ((r.kind || 'future') === 'future' && r.deliver <= Date.now() && !r.opened) || (r.kind === 'people' && !r.sent && r.deliver > r.created + 60e3 && r.deliver <= Date.now())).length; const b = $('#badge'); b.hidden = !n; b.textContent = n ? `${n} new` : ''; } catch {} }
+async function refreshBadge(){ try { const l = await Store.list(); const n = l.filter(r => ((r.kind || 'future') === 'future' && r.deliver <= Date.now() && !r.opened) || (r.kind === 'people' && !r.sent && r.deliver > r.created + 60e3 && r.deliver <= Date.now()) || (r.kind === 'santa' && !r.opened && r.deliver > r.created + 60e3 && r.deliver <= Date.now())).length; const b = $('#badge'); b.hidden = !n; b.textContent = n ? `${n} new` : ''; } catch {} }
 function itemCard(r){
   const now = Date.now(), arrived = now >= r.deliver;
   let c, title, when, pill, peek = '';
-  if (r.kind === 'santa') { c = 'var(--santa)'; title = `${r.name}'s letter to Santa`; when = fmt(r.created); pill = el('span', { className:'pill', textContent:'Santa wrote back' }); peek = r.reply; }
+  if (r.kind === 'santa') { c = 'var(--santa)'; title = `${r.name}'s letter to Santa`;
+    if (!arrived) { const days = Math.max(1, Math.ceil((r.deliver - now) / DAY)); when = `Reply arrives Christmas morning · ${days} sleep${days === 1 ? '' : 's'}`; pill = el('span', { className:'pill wait', textContent:'On its way from the North Pole' }); }
+    else { when = fmt(r.created); const fresh = r.deliver > r.created + 60e3 && !r.opened; pill = el('span', { className:'pill', textContent: fresh ? 'Santa’s reply is here! Open it' : 'Santa wrote back' }); if (!fresh) peek = r.reply; } }
   else if (r.kind === 'people') { c = 'var(--yellow)'; title = `Postcard for ${r.to}`; when = r.sent ? 'Sent ' + fmt(r.sent) : arrived ? 'Ready to send' : 'Send on ' + fmt(r.deliver); pill = el('span', { className:'pill' + (arrived && !r.sent ? '' : ' wait'), textContent: r.sent ? 'Sent' : arrived ? 'Send it today!' : 'Waiting' }); peek = r.body; }
   else { c = 'var(--sky)'; title = arrived ? 'A letter from past you!' : 'Letter to future me';
     const days = Math.max(0, Math.ceil((r.deliver - now) / DAY));
@@ -1130,7 +1259,10 @@ async function openItem(r){
   const now = Date.now();
   if (r.kind === 'santa') {
     const card = readShell('var(--santa)', `${r.name}'s letter to Santa`);
-    card.append(el('p', { className:'note', textContent: fmt(r.created) }), el('div', { className:'parch', textContent: r.body }), el('h2', { textContent:'Santa wrote back' }), el('div', { className:'parch santa', textContent: r.reply }), el('div', { className:'actions' }, readAloud(() => r.reply), deleteBtn(r)));
+    if (Date.now() < r.deliver) { card.append(el('p', { className:'note', textContent: fmt(r.created) }), el('div', { className:'parch', textContent: r.body }), sealedNote(r.deliver), el('div', { className:'actions' }, deleteBtn(r))); return; }
+    if (!r.opened) { r.opened = Date.now(); Store.update(r.id, { opened: r.opened }).catch(() => {}); refreshBadge(); }
+    const np = el('div', { className:'np', 'aria-hidden':'true', innerHTML: northPoleSVG() });
+    card.append(np, el('p', { className:'note', textContent: fmt(r.created) }), el('div', { className:'parch', textContent: r.body }), el('h2', { textContent:'Santa wrote back' }), el('div', { className:'parch santa', textContent: r.reply }), el('div', { className:'actions' }, readAloud(() => r.reply), deleteBtn(r)));
     return;
   }
   if (r.kind === 'people') {
@@ -1222,9 +1354,12 @@ addEventListener('hashchange', () => { stopTalking(); try { speechSynthesis.canc
   if (now.getMonth() < 10 || now > new Date(now.getFullYear(), 11, 25, 23, 59)) return;
   const days = Math.ceil((xmas - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / DAY);
   const door = $('#santa-door'); door.classList.add('season'); door.parentElement.classList.add('has-season');
-  door.querySelector('span:last-of-type').textContent = 'It’s Christmas season! Tell Santa about your year, and Santa writes back right away.';
+  door.querySelector('b').textContent = 'Write to the North Pole';
+  door.querySelector('.stamp-val').textContent = '';
+  door.querySelector('span:last-of-type').textContent = 'Send Santa a letter today, and wake up to a surprise letter from Santa on Christmas morning! 🎁';
   door.append(el('span', { className:'countdown', textContent: days === 0 ? 'It’s Christmas today!' : `${days} day${days === 1 ? '' : 's'} until Christmas` }));
-  $('#hello-sub').textContent = 'Santa is reading letters now! Or write to future you, or someone special.';
+  $('#hello-sub').textContent = 'Santa is reading letters at the North Pole! Or write to future you, or someone special.';
+  $('#s-intro').hidden = false;
 })();
 
 /* ================= routing ================= */
