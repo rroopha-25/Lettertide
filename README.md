@@ -25,7 +25,7 @@ Lettertide brings every letter that matters into one bright, friendly place, whe
 | **Look and feel** | A form | A real letter: airmail stripes, stamps, handwriting, and a bottle floating out to sea |
 | **When it arrives** | One date, one email | Months to 100 years later, on Thanksgiving, on any day, or right now |
 | **What comes back** | The letter | The letter, a time capsule shown "then and now", a guess to check, and a "write back" button that keeps the conversation going |
-| **Santa** | Not included | Santa replies right away, with child-safe rules built in |
+| **Santa** | Not included | Write to the North Pole and Santa's reply arrives on Christmas morning (or right away), with child-safe rules built in |
 | **Cards for others** | Usually not included | Painted postcards for holidays around the world, sent as a picture from your own phone, with a reminder on the day |
 | **Built to last** | Depends on one email address | The whole letter travels inside the arrival email, a yearly "still you?" check, an optional backup contact, and a full export |
 | **Privacy** | Varies | Optional secret word that encrypts the letter in your own browser |
@@ -36,9 +36,10 @@ Lettertide brings every letter that matters into one bright, friendly place, whe
 - **Talk instead of typing.** Kids who can't write yet tap the microphone and say their letter; it appears as written sentences. A **Read it to me** button reads Santa's reply and arrived letters out loud for kids who can't read yet.
 - **Made for small hands.** One question at a time, giant tap targets, a progress trail of dots, and idea buttons like *"Right now I love…"* or *"This year I'm thankful for you because…"* for when a child gets stuck.
 - **Letters that answer back.** A future letter brings back a time capsule (favorite food, best friend, what I want to be) beside empty boxes for who you are now, asks whether your guess came true, and lets you write back to the future.
-- **Santa writes back, safely.** Santa never promises a specific present, never asks for an address or school, never suggests keeping secrets, and gently tells a child to talk to a trusted grown-up if they mention being hurt or scared.
+- **Santa writes back on Christmas morning, safely.** Santa never promises a specific present, never asks for an address or school, never suggests keeping secrets, and gently tells a child to talk to a trusted grown-up if they mention being hurt or scared.
 - **Holidays and festivals from around the world.** New Year's, Valentine's Day, Lunar New Year, Easter, Passover, Eid, Mother's and Father's Day, Teacher Appreciation, Grandparents Day, Halloween, Diwali, Thanksgiving, Hanukkah, Christmas, Kwanzaa and more. Each one has its own painted postcard and greetings, and Lettertide works out the date.
-- **Christmas season.** From November 1 until Christmas, Santa moves to the top of the home page with a countdown to Christmas.
+- **Christmas season.** From November 1 until Christmas, "Write to the North Pole" moves to the top of the home page with a countdown, and Santa's reply can arrive as a sealed surprise on Christmas morning.
+- **An animated North Pole.** Santa waves beside the striped pole while a sleigh flies past, under the northern lights.
 - **Sent as you.** Postcards go out from the sender's own phone or email, so the person receiving it only ever sees the sender.
 - **An airmail look.** Red-and-blue airmail stripes, envelope cream and stamp yellow on every screen and every email, with the three choices drawn as postage stamps. It works in light and dark mode.
 
@@ -71,7 +72,7 @@ Pick the occasion, write (or say) the message, and pick a painted picture. Lette
 
 ### Santa
 
-Tell Santa about your year. An envelope flies to the North Pole, and Santa writes back.
+Tell Santa about your year. An envelope flies to the North Pole, where Santa waves hello, and Santa's reply arrives on Christmas morning (or right away, if you choose).
 
 <p><img src="docs/screenshots/santa-write.png" alt="Writing a letter to Santa with idea buttons" width="49%"> <img src="docs/screenshots/santa-reply.png" alt="Santa's reply to Maya under a snowy North Pole scene" width="49%"></p>
 
