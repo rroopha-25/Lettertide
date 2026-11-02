@@ -4,7 +4,7 @@
 Write to future you, to someone special, or to Santa (who writes back).<br>
 Simple enough for a seven-year-old. Meaningful enough for their grandparents.</p>
 
-<p align="center"><img src="docs/screenshots/home.png" alt="Lettertide home screen: Write to the North Pole with an animated Santa, Future me, and Someone special" width="900"></p>
+<p align="center"><img src="docs/screenshots/home.png" alt="Lettertide home screen with three animated scenes: Santa at the North Pole, a message in a bottle at sea, and postcards flying to Grandma’s house" width="900"></p>
 
 ---
 
