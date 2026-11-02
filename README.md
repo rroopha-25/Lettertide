@@ -4,7 +4,7 @@
 Write to future you, to someone special, or to Santa (who writes back).<br>
 Simple enough for a seven-year-old. Meaningful enough for their grandparents.</p>
 
-<p align="center"><img src="docs/screenshots/home.png" alt="Lettertide home screen with three big choices: Future me, Someone special, and Santa" width="900"></p>
+<p align="center"><img src="docs/screenshots/home.png" alt="Lettertide home screen: Write to the North Pole with an animated Santa, Future me, and Someone special" width="900"></p>
 
 ---
 
@@ -74,7 +74,9 @@ Pick the occasion, write (or say) the message, and pick a painted picture. Lette
 
 Tell Santa about your year. An envelope flies to the North Pole, where Santa waves hello, and Santa's reply arrives on Christmas morning (or right away, if you choose).
 
-<p><img src="docs/screenshots/santa-write.png" alt="Writing a letter to Santa with idea buttons" width="49%"> <img src="docs/screenshots/santa-reply.png" alt="Santa's reply to Maya under a snowy North Pole scene" width="49%"></p>
+<p align="center"><img src="docs/screenshots/santa-start.png" alt="The North Pole: Santa waving beside the striped pole and workshop while a sleigh flies under the northern lights" width="800"></p>
+<p><img src="docs/screenshots/santa-write.png" alt="Writing to Santa, with a choice of reply on Christmas morning or right away" width="49%"> <img src="docs/screenshots/santa-sealed.png" alt="Santa got your letter: a sealed envelope and 53 sleeps to go until Christmas morning" width="49%"></p>
+<p align="center"><img src="docs/screenshots/santa-reply.png" alt="On Christmas morning, Santa's reply to Maya opens under the North Pole scene" width="600"></p>
 
 ### My mailbox
 
@@ -84,7 +86,7 @@ Every letter in one place: floating to the future, arrived, Santa's replies, and
 
 ### On a phone, in dark mode
 
-<p align="center"><img src="docs/screenshots/mobile-dark.png" alt="Lettertide home on a phone in dark mode" width="280">&nbsp;&nbsp;&nbsp;<img src="docs/screenshots/mobile-santa.png" alt="Writing to Santa on a phone in dark mode" width="280"></p>
+<p align="center"><img src="docs/screenshots/mobile-dark.png" alt="Lettertide home on a phone in dark mode" width="280">&nbsp;&nbsp;&nbsp;<img src="docs/screenshots/mobile-santa.png" alt="The North Pole Santa screen on a phone in dark mode" width="280"></p>
 
 ---
 
