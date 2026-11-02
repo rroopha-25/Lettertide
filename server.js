@@ -223,7 +223,7 @@ async function tick() {
           out.future++;
         } else if (m.kind === 'people' && m.recipient_email) {
           const card = JSON.parse(m.data);
-          await mailer.send(m.recipient_email, mailer.templates.card(card), { replyTo: m.email, fromName: card.from });
+          await mailer.send(m.recipient_email, mailer.templates.card(card, t), { replyTo: m.email, fromName: card.from });
           out.cards++;
         }
         await db.run('UPDATE mail SET delivered_at = ? WHERE id = ?', t, m.id);

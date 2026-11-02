@@ -38,6 +38,7 @@ Lettertide brings every letter that matters into one bright, friendly place, whe
 - **Letters that answer back.** A future letter brings back a time capsule (favorite food, best friend, what I want to be) beside empty boxes for who you are now, asks whether your guess came true, and lets you write back to the future.
 - **Santa writes back, safely.** Santa never promises a specific present, never asks for an address or school, never suggests keeping secrets, and gently tells a child to talk to a trusted grown-up if they mention being hurt or scared.
 - **Cards for every culture's big days.** Diwali, Eid al-Fitr and Eid al-Adha, Hanukkah, Christmas, Kwanzaa, Lunar New Year, Holi, Raksha Bandhan, Pongal and Sankranti, Thanksgiving, Mother's and Father's Day, plus everyday thank-yous and birthdays. Each festival comes with its own greetings, colors and sticker (a diya for Diwali, a crescent moon for Eid, a menorah for Hanukkah, a lantern for Lunar New Year), and Lettertide works out the date so the card arrives on the day.
+- **Christmas season.** From November 1 until Christmas, Santa moves to the top of the home page with a countdown to Christmas.
 - **Sent as you, answered to you.** Grandma sees the card from "Maya via Lettertide", and when she taps Reply, it goes straight to Maya's family.
 - **An airmail look.** Red-and-blue airmail stripes, envelope cream and stamp yellow on every screen and every email, with the three choices drawn as postage stamps. It works in light and dark mode.
 
@@ -64,9 +65,9 @@ Make a card, decorate it, and send it now or on the day that matters.
 
 <p><img src="docs/screenshots/card.png" alt="Designing a kraft-paper Thanksgiving card for Grandma with a leaf sticker" width="49%"> <img src="docs/screenshots/card-when.png" alt="Choosing to send the card on Thanksgiving to Grandma's email" width="49%"></p>
 
-What Grandma receives in her inbox:
+What arrives in their inbox: a postcard, with a picture side and a written side with stamp, postmark and address.
 
-<p align="center"><img src="docs/screenshots/email-card.png" alt="The Thanksgiving card as an email, signed From Maya" width="520"></p>
+<p align="center"><img src="docs/screenshots/email-card.png" alt="The card arrives as a postcard email: a Happy Diwali picture side, then the message with a stamp, postmark and To line" width="520"></p>
 
 ### Santa
 

@@ -43,7 +43,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   assert.equal(card.r.status, 201);
   await wait(200);
   const g = outbox.find(m => m.to === 'grandma@example.com');
-  assert(g && /Thanksgiving card for you from Maya/.test(g.subject) && g.replyTo === 'parent@example.com' && g.fromName === 'Maya' && g.html.includes('From Maya'));
+  assert(g && /Thanksgiving card for you from Maya/.test(g.subject) && g.replyTo === 'parent@example.com' && g.fromName === 'Maya' && g.html.includes('From Maya') && g.html.includes('postcard'));
   assert.equal(require('../mailer').fromFor('Maya'), '"Maya via Lettertide" <letters@localhost>');
   assert.equal(require('../mailer').fromFor('Evil"<x@y>'), '"Evilx@y via Lettertide" <letters@localhost>');
   // scheduled card + bad email

@@ -123,6 +123,15 @@ textarea.write{width:100%;font:400 25px/1.6 var(--f-hand);color:var(--ink);backg
 .speak svg{width:22px;height:22px;vertical-align:-4px;margin-right:6px}
 @media (prefers-reduced-motion:reduce){.mic.on{animation:none}}
 
+/* Christmas season: Santa comes first */
+.doors.has-season{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.doors .door.season{grid-column:1/-1;order:-1;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);align-items:center;column-gap:22px}
+.door.season .pic{grid-row:1/span 4;height:180px;margin:0}
+.door.season b{font-size:36px}
+.countdown{justify-self:start;font:700 16px var(--f-display);background:#FFFDF8;color:var(--red);border-radius:999px;padding:6px 14px;margin-top:6px}
+.door.season .pic{background-image:radial-gradient(circle at 20% 30%,#fff 0 2px,transparent 3px),radial-gradient(circle at 70% 20%,#fff 0 2px,transparent 3px),radial-gradient(circle at 45% 70%,#fff 0 1.5px,transparent 2.5px),radial-gradient(circle at 85% 65%,#fff 0 2px,transparent 3px);background-color:color-mix(in srgb,#fff 18%,transparent)}
+@media (max-width:640px){.doors .door.season{grid-template-columns:1fr}.door.season .pic{grid-row:auto;height:118px;margin-bottom:8px}.door.season b{font-size:28px}}
+
 /* occasions */
 .occ{display:grid;gap:10px}
 .occ-head{margin:6px 0 0;font:700 15px var(--f-display);color:var(--muted)}
@@ -216,7 +225,7 @@ footer{padding-block:10px 40px;text-align:center;color:var(--muted);font-size:15
 <main data-panel="home" class="g"><div class="wrap">
   <div class="hello">
     <h1>Who do you want to <span>write to</span>?</h1>
-    <p>Pick one. We'll help you with every step.</p>
+    <p id="hello-sub">Pick one. We'll help you with every step.</p>
   </div>
   <div class="doors">
     <a class="door" href="#future" style="--c:var(--sky)">
@@ -227,7 +236,7 @@ footer{padding-block:10px 40px;text-align:center;color:var(--muted);font-size:15
       <div class="pic"><svg viewBox="0 0 120 100" aria-hidden="true"><rect x="18" y="26" width="84" height="58" rx="4" fill="#FFFDF8"/><path d="M18 26h84v6H18z" fill="#E23B3B"/><path d="M18 78h84v6H18z" fill="#1F4FA0"/><path d="M18 34l42 26 42-26" fill="none" stroke="#16305F" stroke-width="3" stroke-linejoin="round"/><path d="M60 72s-12-7-12-15c0-3.5 2.6-6 6-6 2.7 0 4.8 1.7 6 3.5 1.2-1.8 3.3-3.5 6-3.5 3.4 0 6 2.5 6 6 0 8-12 15-12 15z" fill="#E23B3B"/></svg></div>
       <span class="stamp-val" aria-hidden="true">2¢</span><b>Someone special</b><span>Thank-yous, birthdays, Diwali, Eid, Hanukkah, Christmas and more.</span>
     </a>
-    <a class="door" href="#santa" style="--c:var(--santa)">
+    <a class="door" href="#santa" id="santa-door" style="--c:var(--santa)">
       <div class="pic"><svg viewBox="0 0 120 100" aria-hidden="true"><path d="M30 74C34 40 52 18 78 20c10 1 18 8 20 18-8-6-16-6-20 2-6 12-8 24-8 34z" fill="#FFFDF8"/><rect x="22" y="70" width="64" height="16" rx="8" fill="#FFFDF8"/><circle cx="100" cy="42" r="10" fill="#FFFDF8"/><g fill="#F5B935"><circle cx="16" cy="22" r="3"/><circle cx="104" cy="80" r="3"/><circle cx="12" cy="60" r="2.5"/></g></svg></div>
       <span class="stamp-val" aria-hidden="true">North Pole</span><b>Santa</b><span>Tell Santa about your year. Santa writes back!</span>
     </a>
@@ -976,6 +985,17 @@ function readAloud(getText){
   return b;
 }
 addEventListener('hashchange', () => { stopTalking(); try { speechSynthesis.cancel(); } catch {} });
+
+/* ================= Christmas season (Nov 1 to Dec 25) ================= */
+(function christmasSeason(){
+  const now = new Date(), xmas = new Date(now.getFullYear(), 11, 25);
+  if (now.getMonth() < 10 || now > new Date(now.getFullYear(), 11, 25, 23, 59)) return;
+  const days = Math.ceil((xmas - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / DAY);
+  const door = $('#santa-door'); door.classList.add('season'); door.parentElement.classList.add('has-season');
+  door.querySelector('span:last-of-type').textContent = 'It’s Christmas season! Tell Santa about your year, and Santa writes back right away.';
+  door.append(el('span', { className:'countdown', textContent: days === 0 ? 'It’s Christmas today!' : `${days} day${days === 1 ? '' : 's'} until Christmas` }));
+  $('#hello-sub').textContent = 'Santa is reading letters now! Or write to future you, or someone special.';
+})();
 
 /* ================= routing ================= */
 function show(){

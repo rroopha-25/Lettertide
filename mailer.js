@@ -49,19 +49,60 @@ const templates = {
       html: wrap('A letter from past you is here!', `You wrote to yourself on <b>${fmt(created)}</b>. It has been floating at sea ever since, and today it washed ashore.<br><br>${body}`, { href: link, label: letter ? 'Write back to the future' : 'Open my letter' })
     };
   },
-  card: c => {
+  // A card arrives as a postcard: the picture side on top, the written side (message, stamp, postmark, address) below.
+  card: (c, sentAt = Date.now()) => {
     const T = { sun: ['#F5B935', '#16305F'], berry: ['#E23B3B', '#FFFDF8'], ocean: ['#1F4FA0', '#FFFDF8'], fall: ['#C98D4B', '#2E1A08'], mint: ['#FFFDF8', '#16305F'], grape: ['#16305F', '#FFFDF8'] }[c.theme] || ['#F5B935', '#16305F'];
-    const subj = { thanks: 'A thank-you card for you', thanksgiving: 'A Happy Thanksgiving card for you', birthday: 'A birthday card for you', getwell: 'A get-well card for you', love: 'A card full of love for you', hello: 'A card for you',
-      diwali: 'A Happy Diwali card for you', hanukkah: 'A Happy Hanukkah card for you', christmas: 'A Merry Christmas card for you', kwanzaa: 'A Happy Kwanzaa card for you',
-      pongal: 'A Happy Pongal card for you', lunar: 'A Happy Lunar New Year card for you', eidfitr: 'An Eid Mubarak card for you', eidadha: 'An Eid Mubarak card for you',
-      holi: 'A Happy Holi card for you', mothers: 'A Happy Mother’s Day card for you', fathers: 'A Happy Father’s Day card for you', rakhi: 'A Happy Raksha Bandhan card for you' }[c.occasion] || 'A card for you';
+    const O = {
+      thanks: ['A thank-you card for you', 'Thank you!', '💌'], birthday: ['A birthday card for you', 'Happy birthday!', '🎂'], getwell: ['A get-well card for you', 'Get well soon', '🌻'],
+      love: ['A card full of love for you', 'With love', '💗'], hello: ['A card for you', 'Hello from me', '✉️'], thanksgiving: ['A Happy Thanksgiving card for you', 'Happy Thanksgiving', '🍂'],
+      diwali: ['A Happy Diwali card for you', 'Happy Diwali', '🪔'], hanukkah: ['A Happy Hanukkah card for you', 'Happy Hanukkah', '🕎'], christmas: ['A Merry Christmas card for you', 'Merry Christmas', '🎄'],
+      kwanzaa: ['A Happy Kwanzaa card for you', 'Happy Kwanzaa', '🕯️'], pongal: ['A Happy Pongal card for you', 'Happy Pongal', '🌾'], lunar: ['A Happy Lunar New Year card for you', 'Happy Lunar New Year', '🏮'],
+      eidfitr: ['An Eid Mubarak card for you', 'Eid Mubarak', '🌙'], eidadha: ['An Eid Mubarak card for you', 'Eid Mubarak', '🌙'], holi: ['A Happy Holi card for you', 'Happy Holi', '🎨'],
+      mothers: ['A Happy Mother’s Day card for you', 'Happy Mother’s Day', '💐'], fathers: ['A Happy Father’s Day card for you', 'Happy Father’s Day', '⭐'], rakhi: ['A Happy Raksha Bandhan card for you', 'Happy Raksha Bandhan', '🧵']
+    }[c.occasion] || ['A card for you', 'Hello from me', '✉️'];
+    const [subj, greeting, icon] = O;
+    const day = new Date(sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+    const hand = "'Patrick Hand','Comic Sans MS','Chalkboard SE',cursive";
+    const stripe = 'repeating-linear-gradient(-45deg,#E23B3B 0 10px,#FFFDF8 10px 16px,#1F4FA0 16px 26px,#FFFDF8 26px 32px)';
+    const html = `<!doctype html><html><body style="margin:0;background:#FBF4E6;font-family:Helvetica,Arial,sans-serif;color:#16305F">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 12px">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px">
+<tr><td style="padding:0 4px 12px;font-size:15px;color:#5B6888">📬 ${c.from ? `${esc(c.from)} sent you a postcard` : 'You have a postcard'}</td></tr>
+
+<tr><td style="background:${T[0]};background-image:${stripe};padding:8px;border-radius:14px">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:${T[0]};border-radius:8px"><tr><td align="center" style="padding:40px 20px 34px;color:${T[1]}">
+    <div style="font-size:64px;line-height:1">${icon}</div>
+    <div style="font-size:40px;font-weight:800;line-height:1.1;margin-top:14px">${esc(greeting)}${c.to ? `,<br>${esc(c.to)}!` : '!'}</div>
+    <div style="font-size:14px;letter-spacing:3px;margin-top:16px;opacity:.85">GREETINGS FROM LETTERTIDE</div>
+  </td></tr></table>
+</td></tr>
+
+<tr><td style="height:14px;font-size:0;line-height:0">&nbsp;</td></tr>
+
+<tr><td style="background:#FFFDF8;border:1px solid #E6DCC6;border-radius:14px;padding:22px">
+  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+    <td valign="top" style="width:58%;padding-right:16px;border-right:2px solid #E6DCC6;font-family:${hand};font-size:19px;line-height:1.55;color:#16305F;white-space:pre-wrap">${esc(c.body)}${c.from ? `<div style="font-size:21px;font-weight:700;margin-top:12px">From ${esc(c.from)}</div>` : ''}</td>
+    <td valign="top" style="width:42%;padding-left:16px">
+      <table cellpadding="0" cellspacing="0" align="right" style="border:3px dashed #FFFDF8;outline:3px solid ${T[0] === '#FFFDF8' ? '#E23B3B' : T[0]};background:${T[0] === '#FFFDF8' ? '#E23B3B' : T[0]};width:84px"><tr><td align="center" style="padding:8px 4px;color:${T[0] === '#FFFDF8' || T[0] === '#E23B3B' || T[0] === '#1F4FA0' || T[0] === '#16305F' ? '#FFFDF8' : T[1]}">
+        <div style="font-size:30px;line-height:1">${icon}</div><div style="font-size:9px;font-weight:800;letter-spacing:1px;margin-top:4px">AIRMAIL</div>
+      </td></tr></table>
+      <div style="clear:both;height:8px;font-size:0">&nbsp;</div>
+      <table cellpadding="0" cellspacing="0" style="border:2px solid #9AA6C2;border-radius:50%;width:92px;height:92px;transform:rotate(-12deg)"><tr><td align="center" valign="middle" style="font-size:9px;font-weight:800;color:#7D89A8;letter-spacing:.5px;line-height:1.4">LETTERTIDE<br>${day}<br>DELIVERED</td></tr></table>
+      <div style="margin-top:16px;font-size:12px;color:#5B6888;font-weight:700">TO</div>
+      <div style="border-bottom:1.5px solid #C9BFA8;padding:4px 0;font-family:${hand};font-size:20px;color:#16305F">${esc(c.to || '')}</div>
+      <div style="border-bottom:1.5px solid #C9BFA8;height:22px"></div>
+      <div style="border-bottom:1.5px solid #C9BFA8;height:22px"></div>
+    </td>
+  </tr></table>
+</td></tr>
+
+<tr><td style="padding:14px 4px 0;font-size:14px;color:#5B6888">↩️ Reply to this email to write back${c.from ? ' to ' + esc(c.from) : ''}.</td></tr>
+<tr><td style="padding:6px 4px 0;font-size:12px;color:#9AA6C2">Sent with Lettertide, letters that arrive right on time.</td></tr>
+</table></td></tr></table></body></html>`;
     return {
       subject: c.from ? `${subj} from ${c.from}` : `${subj}, ${c.to}!`,
-      text: `To ${c.to}\n\n${c.body}\n\n${c.from ? `From ${c.from}\n\n` : ''}(Reply to this email to write back${c.from ? ' to ' + c.from : ''}.)`,
-      html: wrap(subj, `<div style="background:${T[0]};color:${T[1]};border:4px solid #16305F;border-radius:6px;padding:24px;font-family:'Comic Sans MS','Patrick Hand',cursive">
-        <div style="font-size:24px;font-weight:700;margin-bottom:10px">To ${esc(c.to)}</div>
-        <div style="font-size:20px;line-height:1.5;white-space:pre-wrap">${esc(c.body)}</div>${c.from ? `<div style="font-size:22px;font-weight:700;margin-top:14px">From ${esc(c.from)}</div>` : ''}</div>
-        <p style="font-size:14px;color:#6b6390;margin-top:16px">Reply to this email to write back${c.from ? ' to ' + esc(c.from) : ''}.</p>`)
+      text: `${greeting}, ${c.to}!\n\n${c.body}\n\n${c.from ? `From ${c.from}\n\n` : ''}(A postcard sent with Lettertide. Reply to this email to write back${c.from ? ' to ' + c.from : ''}.)`,
+      html
     };
   },
   arrivedBackup: ({ owner, link }) => ({
