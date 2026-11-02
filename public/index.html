@@ -200,6 +200,8 @@ textarea.write{width:100%;font:400 25px/1.6 var(--f-hand);color:var(--ink);backg
 @keyframes fly3{0%{transform:translate(206px,176px) rotate(-25deg) scale(.4);opacity:0}8%{opacity:1}50%{transform:translate(336px,66px) rotate(0) scale(1)}90%{transform:translate(463px,186px) rotate(22deg) scale(.45);opacity:1}100%{transform:translate(463px,186px) scale(.2);opacity:0}}
 .np .puff{animation:puff 4.2s ease-out infinite;opacity:0}
 @keyframes puff{0%{transform:translate(529px,104px) scale(.6);opacity:.9}100%{transform:translate(545px,40px) scale(1.5);opacity:0}}
+.np .kite{transform-box:fill-box;transform-origin:50% 0;animation:kite 3.2s ease-in-out infinite alternate}
+@keyframes kite{from{transform:rotate(-12deg) translateY(0)}to{transform:rotate(10deg) translateY(-8px)}}
 .np .beat{transform-box:fill-box;transform-origin:center;animation:beat 1.2s ease-in-out infinite}
 @keyframes beat{50%{transform:scale(1.25)}}
 @media (prefers-reduced-motion:reduce){.np .fly{opacity:1;transform:translate(336px,70px)}.np .yr:first-of-type{opacity:1}.np .fish{opacity:0}.np .rise{transform:translate(0,90px)}}
@@ -1164,11 +1166,12 @@ function townSVG(){
   const balloon = (x, c, d, dur) => `<g transform="translate(${x} 0)"><g class="rise" style="animation-duration:${dur}s;animation-delay:-${d}s"><path d="M0 16q-4 12 2 24" stroke="#16305F" stroke-width="1.2" fill="none"/><ellipse cx="0" cy="0" rx="12" ry="15" fill="${c}"/><path d="M-2 15h4l-2 4z" fill="${c}"/><ellipse cx="-4" cy="-6" rx="3" ry="5" fill="#fff" opacity=".45"/></g></g>`;
   const flower = (x, y, c, d) => `<g transform="translate(${x} ${y})"><g class="sway2" style="animation-delay:-${d}s"><path d="M0 0v-14" stroke="#1A7F4E" stroke-width="2"/><circle cy="-17" r="5" fill="${c}"/><circle cy="-17" r="2" fill="#FFE08A"/></g></g>`;
   return `<svg viewBox="0 0 600 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-  <g fill="none" stroke-width="12" opacity=".32"><path d="M120 260a180 180 0 0 1 360 0" stroke="#E23B3B"/><path d="M132 260a168 168 0 0 1 336 0" stroke="#F5B935"/><path d="M144 260a156 156 0 0 1 312 0" stroke="#3DBE6B"/><path d="M156 260a144 144 0 0 1 288 0" stroke="#1F4FA0"/></g>
   <g transform="translate(64 66)"><g class="spin" fill="#FFD23F">${rays}</g><circle r="24" fill="#FFD23F"/></g>
   ${cloud(700, 70, .9, 44, 12)}${cloud(700, 110, .6, 32, 25)}
   <g class="sway3"><path d="M0 12Q300 108 600 12" stroke="#16305F" stroke-width="1.5" fill="none"/>${flags}</g>
   ${balloon(300, '#E23B3B', 1, 11)}${balloon(330, '#1F4FA0', 5, 13)}${balloon(270, '#F5B935', 8, 12)}
+  <path d="M168 128Q150 170 112 210" stroke="#16305F" stroke-width="1.2" fill="none"/>
+  <g transform="translate(168 104) scale(.8)"><g class="kite"><path d="M0-30L18 0L0 26L-18 0Z" fill="#E23B3B"/><path d="M0-30L18 0H-18Z" fill="#F5B935"/><path d="M0-30V26M-18 0H18" stroke="#16305F" stroke-width="1.6"/><path class="tail" d="M0 26q-8 10 0 18t0 18" stroke="#16305F" stroke-width="1.4" fill="none"/><path d="M-4 38l8 4-8 4zM-4 54l8 4-8 4z" fill="#1F4FA0"/></g></g>
   <path d="M0 208Q150 170 300 198T600 188V300H0Z" fill="#9ADB9C"/>
   <g><path d="M50 166L115 118L180 166Z" fill="#E23B3B"/><rect x="62" y="162" width="106" height="80" fill="#1F4FA0"/><rect x="78" y="182" width="24" height="22" rx="3" fill="#FFD86B"/><path d="M90 182v22M78 193h24" stroke="#16305F" stroke-width="2.5"/><rect x="122" y="196" width="28" height="46" rx="4" fill="#FFFDF8"/><circle cx="144" cy="220" r="2.4" fill="#16305F"/></g>
   <g><rect x="203" y="196" width="6" height="44" fill="#7A4A22"/><path d="M190 198V184a16 16 0 0 1 32 0v14z" fill="#E23B3B" stroke="#16305F" stroke-width="2"/><g class="mflag"><rect x="221" y="174" width="3" height="20" fill="#16305F"/><rect x="221" y="174" width="12" height="8" fill="#F5B935"/></g></g>
