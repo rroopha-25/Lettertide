@@ -144,11 +144,13 @@ textarea.write{width:100%;font:400 25px/1.6 var(--f-hand);color:var(--ink);backg
 .stk{width:58px;height:58px;border-radius:18px;border:3px solid var(--line);cursor:pointer;background:var(--bg);display:grid;place-items:center;color:var(--ink)}
 .stk svg{width:32px;height:32px}
 .stk[aria-pressed="true"]{border-color:var(--ink);background:var(--c);color:var(--on)}
-.preview{border-radius:24px;padding:26px;border:4px solid var(--ink);position:relative;overflow:hidden;min-height:220px;box-shadow:0 6px 0 var(--shadow)}
-.preview .pv-to{font:700 26px var(--f-display);margin:0 0 6px}
-.preview .pv-body{font:400 23px/1.45 var(--f-hand);white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:hidden}
-.preview .pv-st{position:absolute;width:64px;height:64px;right:14px;top:12px;opacity:.95}
-.preview .pv-st2{position:absolute;width:40px;height:40px;right:22px;bottom:14px;opacity:.6;transform:rotate(-15deg)}
+.preview{border-radius:14px;overflow:hidden;box-shadow:0 14px 30px -18px var(--shadow);background:#FFFDF8}
+.preview img{display:block;width:100%;height:auto}
+.pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.pic{border:3px solid var(--line);border-radius:14px;padding:4px 4px 6px;background:var(--surface);cursor:pointer;display:grid;gap:4px;color:var(--ink);font:700 12px/1.2 var(--f-display)}
+.pic canvas{width:100%;height:auto;border-radius:9px;display:block}
+.pic[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 3px var(--yellow)}
+#p-final-actions .big svg{margin-right:2px}
 
 /* celebrate / scenes */
 .scene{border-radius:26px;overflow:hidden;border:4px solid var(--ink);position:relative;height:220px}
@@ -342,23 +344,24 @@ footer{padding-block:10px 40px;text-align:center;color:var(--muted);font-size:15
   </section>
 
   <section class="card" data-step hidden>
-    <h2>Make it pretty</h2>
-    <div><span class="lbl">Card color</span><div class="swatches" id="p-theme"></div></div>
-    <div><span class="lbl">Sticker</span><div class="swatches" id="p-sticker"></div></div>
+    <h2>Pick a picture</h2>
+    <p class="sub">This is your postcard. Tap a picture to change it.</p>
     <div class="preview" id="p-preview"></div>
+    <div class="pics" id="p-pics"></div>
     <div class="next-row"><button class="big go" type="button" data-next>Next</button></div>
   </section>
 
   <section class="card" data-step hidden>
-    <h2>When should they get it?</h2>
+    <h2>When will you send it?</h2>
+    <p class="sub">You send it from your own phone or email, so they'll see it's from you.</p>
     <div class="tiles" id="p-when"></div>
     <div id="p-custom-wrap" hidden><label class="lbl" for="p-custom">Pick a day</label><input id="p-custom" class="field" type="date"></div>
     <div class="bigdate" id="p-date"></div>
-    <div id="p-email-wrap" hidden><label class="lbl" for="p-email">Their email <small class="note">(ask a grown-up)</small></label><p class="note" id="p-email-note" style="margin:-2px 0 6px"></p><input id="p-email" class="field" type="email" data-draft placeholder="grandma@example.com"></div>
+    
     <p class="note" id="p-where"></p>
     <div data-signin></div>
     <p class="err" role="status"></p>
-    <div class="next-row"><button class="big go" type="button" id="p-send">Send my letter</button></div>
+    <div class="next-row"><button class="big go" type="button" id="p-send">Make my postcard</button></div>
   </section>
 
   <section class="card" data-step data-final hidden>
@@ -510,8 +513,6 @@ function renderSignins(){
     const warn = 'Heads up: this page can\'t send emails. Your letter will wait in My mailbox here until its day, so come back to open it. To get letters by email, use the full Lettertide website.';
     $('#f-where').textContent = warn; $('#f-where').style.cssText = 'background:color-mix(in srgb,var(--sun) 30%,var(--surface));padding:12px 14px;border-radius:14px;color:var(--ink);font-weight:700';
   }
-  $('#p-email-wrap').hidden = Store.mode !== 'server';
-  $('#p-email-note').textContent = Store.email ? `It will show as from the name you typed, and replies go to ${Store.email}.` : '';
   $('#foot').textContent = { claude:'Your letters are private to you and saved in your Claude account.', server:'Lettertide keeps your letters safe until the day they arrive.', local:'Letters are saved in this browser. Sign in to claude.ai to keep them on every device.' }[Store.mode] || 'Lettertide';
 }
 
@@ -619,6 +620,13 @@ const OCC = [
   { group:'festival', label:'Mother’s Day', key:'mothers', theme:'mint', sticker:'flower', next: yearly(y => nthWeekday(y, 5, 0, 2)), ideas:['Happy Mother’s Day!','You make me feel loved when…','My favorite thing we do together is…','Thank you for…'] },
   { group:'festival', label:'Eid al-Adha', key:'eidadha', theme:'grape', sticker:'moon', moon:true, next: listed([2027,5,16]), ideas:['Eid Mubarak!','This Eid I want to share…','I’m thankful for our family because…','Sending you love and blessings.'] },
   { group:'festival', label:'Father’s Day', key:'fathers', theme:'ocean', sticker:'star', next: yearly(y => nthWeekday(y, 6, 0, 3)), ideas:['Happy Father’s Day!','You always help me…','My favorite thing we do together is…','Thank you for…'] },
+  { group:'festival', label:'New Year’s Day', key:'newyear', next: yearly(y => ymd(y, 1, 1)), ideas:['Happy New Year!','This year I hope we…','My favorite memory from last year is…','I can’t wait to…'] },
+  { group:'festival', label:'Valentine’s Day', key:'valentines', next: yearly(y => ymd(y, 2, 14)), ideas:['Happy Valentine’s Day!','I love you because…','You make me smile when…','You’re the best!'] },
+  { group:'festival', label:'Easter', key:'easter', next: listed([2027,3,28],[2028,4,16]), ideas:['Happy Easter!','My favorite part of Easter is…','I hope the Easter bunny…','Let’s hunt for eggs together!'] },
+  { group:'festival', label:'Passover', key:'passover', when:'On the first night', next: listed([2027,4,21]), ideas:['Happy Passover!','Chag Pesach Sameach!','My favorite part of the Seder is…','I’m thankful for our family because…'] },
+  { group:'festival', label:'Teacher Appreciation', key:'teacher', next: yearly(y => { const d = nthWeekday(y, 5, 1, 1); d.setDate(d.getDate() + 1); return d; }), ideas:['Thank you for teaching me…','My favorite thing in your class is…','You helped me when…','You’re the best teacher because…'] },
+  { group:'festival', label:'Grandparents Day', key:'grandparents', next: yearly(y => { const d = nthWeekday(y, 9, 1, 1); d.setDate(d.getDate() + 6); return d; }), ideas:['Happy Grandparents Day!','My favorite thing we do together is…','You always make me feel…','I love your stories about…'] },
+  { group:'festival', label:'Halloween', key:'halloween', next: yearly(y => ymd(y, 10, 31)), ideas:['Happy Halloween!','This year I’m dressing up as…','My favorite treat is…','Boo! I miss you!'] },
   { group:'festival', label:'Raksha Bandhan', key:'rakhi', theme:'berry', sticker:'star', next: listed([2027,8,17],[2028,8,5]), ideas:['Happy Raksha Bandhan!','You always look out for me by…','My favorite memory with you is…','Thank you for being my sibling.'] }
 ];
 // festivals in the order they next come around
@@ -644,12 +652,13 @@ const STICKERS = {
   sun:'M12 6.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11zM11 0h2v4.5h-2zm0 19.5h2V24h-2zM0 11h4.5v2H0zm19.5 0H24v2h-4.5zM3.2 4.6l1.4-1.4 3.2 3.2-1.4 1.4zm13 13l1.4-1.4 3.2 3.2-1.4 1.4zM3.2 19.4l3.2-3.2 1.4 1.4-3.2 3.2zm13-13l3.2-3.2 1.4 1.4-3.2 3.2z'
 };
 const stickerSvg = (k, fill = 'currentColor', cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${STICKERS[k]}" fill="${fill}" fill-rule="evenodd"/></svg>`;
-let pOcc = Math.max(0, OCC.findIndex(o => o.key === draft.pOccKey)), pTheme = draft.pTheme ?? 0, pSticker = draft.pSticker ?? 'heart', pWhen = 0;
+let pScene = draft.pScene || null, pOcc = Math.max(0, OCC.findIndex(o => o.key === draft.pOccKey)), pTheme = draft.pTheme ?? 0, pSticker = draft.pSticker ?? 'heart', pWhen = 0;
 function renderOccasions(){
   const box = $('#p-occ'); box.textContent = '';
   const pick = o => { pOcc = OCC.indexOf(o); draft.pOccKey = o.key;
     if (o.theme) { pTheme = Math.max(0, THEMES.findIndex(t => t.key === o.theme)); draft.pTheme = pTheme; }
     if (o.sticker) { pSticker = o.sticker; draft.pSticker = pSticker; }
+    pScene = SCENE_FOR[o.key] || 'hearts'; draft.pScene = pScene;
     ls.set(DRAFT, draft); $$('.tile', box).forEach(x => x.setAttribute('aria-pressed', x.dataset.key === o.key)); };
   const group = (title, list) => {
     const g = el('div', { className:'tiles' });
@@ -662,10 +671,9 @@ function renderOccasions(){
   group('Festivals and holidays', FEST_ORDER());
 }
 renderOccasions();
-THEMES.forEach((t, i) => { const b = el('button', { type:'button', className:'sw', style:`--s:${t.bg}`, 'aria-label':t.key + ' card', 'aria-pressed':String(i === pTheme) }); b.onclick = () => { pTheme = i; draft.pTheme = i; ls.set(DRAFT, draft); $$('#p-theme .sw').forEach(x => x.setAttribute('aria-pressed', x === b)); paintPreview($('#p-preview'), currentCard()); }; $('#p-theme').append(b); });
-Object.keys(STICKERS).forEach(k => { const b = el('button', { type:'button', className:'stk', 'aria-label':k + ' sticker', 'aria-pressed':String(k === pSticker), innerHTML: stickerSvg(k) }); b.onclick = () => { pSticker = k; draft.pSticker = k; ls.set(DRAFT, draft); $$('#p-sticker .stk').forEach(x => x.setAttribute('aria-pressed', x === b)); paintPreview($('#p-preview'), currentCard()); }; $('#p-sticker').append(b); });
+// card color and sticker pickers were replaced by painted pictures
 function pWhenItems(){
-  const items = [{ label:'Right now', at: () => Date.now() }];
+  const items = [{ label:'Send it now', at: () => Date.now() }];
   const o = OCC[pOcc], fd = o.next?.();
   if (fd) items.push({ label: o.when ? `${o.when} of ${o.label}` : `On ${o.label}`, small: fmtShort(fd) + (o.moon ? ' (moon may shift it a day)' : ''), at: () => o.next().getTime() });
   else items.push({ label:'Tomorrow morning', small:'', at: () => { const d = new Date(Date.now() + DAY); d.setHours(8, 0, 0, 0); return d.getTime(); } });
@@ -673,16 +681,11 @@ function pWhenItems(){
   return items;
 }
 function pShowDate(){ const it = pWhenItems()[pWhen]; const t = it.at(); const b = $('#p-date'); b.textContent = '';
-  if (pWhen === 0) b.append(el('small', { textContent:'They get it' }), 'Right away!');
+  if (pWhen === 0) b.append(el('small', { textContent:'You send it' }), 'Right now!');
   else if (!t || t <= Date.now()) b.append('Pick a day in the future');
-  else b.append(el('small', { textContent:'They get it on' }), fmt(t)); }
-function currentCard(){ return { to: $('#p-to').value.trim() || 'Someone special', from: $('#p-from').value.trim(), body: $('#p-body').value, theme: THEMES[pTheme].key, sticker: pSticker, occasion: OCC[pOcc].key }; }
-function paintPreview(box, c){
-  const t = THEMES.find(x => x.key === c.theme) || THEMES[0];
-  box.style.background = t.bg; box.style.color = t.ink; box.textContent = '';
-  box.insertAdjacentHTML('beforeend', stickerSvg(c.sticker, t.acc, 'pv-st') + stickerSvg(c.sticker, t.acc, 'pv-st2'));
-  box.append(el('p', { className:'pv-to', textContent: 'To ' + c.to }), el('div', { className:'pv-body', textContent: c.body }), c.from ? el('p', { className:'pv-to', style:'margin:10px 0 0;font-size:22px', textContent: 'From ' + c.from }) : '');
-}
+  else b.append(el('small', { textContent:'We’ll remind you to send it on' }), fmt(t)); }
+function currentCard(){ return { to: $('#p-to').value.trim() || 'Someone special', from: $('#p-from').value.trim(), body: $('#p-body').value, theme: THEMES[pTheme].key, sticker: pSticker, occasion: OCC[pOcc].key, scene: pScene || SCENE_FOR[OCC[pOcc].key] || 'hearts', deliver: pendingDeliver() }; }
+function pendingDeliver(){ try { const t = pWhenItems()[pWhen].at(); return pWhen === 0 || !t ? Date.now() : t; } catch { return Date.now(); } }
 wizard('people', {
   enter: n => {
     if (n === 1) {
@@ -690,7 +693,7 @@ wizard('people', {
       if (!$('#p-body').value.trim()) { $('#p-body').value = `Dear ${$('#p-to').value.trim()},\n`; saveDraft(); }
       const box = $('#p-ideas'); box.textContent = ''; box.append(el('span', { textContent:'Ideas:' }), ...o.ideas.map(t => el('button', { type:'button', className:'idea', textContent:t })));
     }
-    if (n === 2) { $$('#p-theme .sw').forEach((x, k) => x.setAttribute('aria-pressed', k === pTheme)); $$('#p-sticker .stk').forEach(x => x.setAttribute('aria-pressed', x.getAttribute('aria-label') === pSticker + ' sticker')); paintPreview($('#p-preview'), currentCard()); }
+    if (n === 2) { if (!pScene) pScene = SCENE_FOR[OCC[pOcc].key] || 'hearts'; renderPictures(); paintPreview($('#p-preview'), currentCard()); }
     if (n === 3) { pWhen = 0; const items = pWhenItems(); tiles($('#p-when'), items, i => { pWhen = i; $('#p-custom-wrap').hidden = !items[i].pick; pShowDate(); }, 0); $('#p-custom-wrap').hidden = true; pShowDate(); }
   },
   check: n => { if (n === 0 && !$('#p-to').value.trim()) return 'Who is your letter for? Type their name.'; if (n === 0 && !$('#p-from').value.trim()) return 'Type your name so they know who it\'s from.'; if (n === 1 && $('#p-body').value.trim().split(/\s+/).length < 3) return 'Write a little more. Try an idea button!'; },
@@ -701,63 +704,282 @@ $('#p-custom').oninput = pShowDate;
 $('#p-send').onclick = async () => {
   const btn = $('#p-send'), at = pWhenItems()[pWhen].at();
   if (!at || (pWhen > 0 && at <= Date.now())) return fail('people', 'Pick a day in the future.');
-  const email = $('#p-email').value.trim();
-  if (Store.mode === 'server') {
-    if (!Store.email) return fail('people', 'A grown-up needs to sign in first, just above.');
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return fail('people', 'That email doesn\'t look right. Ask a grown-up to check it.');
-  }
-  btn.disabled = true; btn.textContent = 'Sending…';
+  if (Store.mode === 'server' && !Store.email) return fail('people', 'A grown-up needs to sign in first, just above.');
+  btn.disabled = true; btn.textContent = 'Making it…';
   const c = currentCard();
-  const rec = { id: uid(), kind:'people', created: Date.now(), deliver: pWhen === 0 ? Date.now() : at, ...c, recipientEmail: email || undefined };
+  const rec = { id: uid(), kind:'people', created: Date.now(), ...c, deliver: pWhen === 0 ? Date.now() : at };
   try {
     await Store.add(rec);
-    clearDraft(['p-to','p-body','p-email']);
+    clearDraft(['p-to','p-body']);
     const now = pWhen === 0;
-    $('#p-done-title').textContent = now ? 'Your card is ready!' : `Saved for ${fmt(rec.deliver)}!`;
-    $('#p-done-sub').textContent = Store.mode === 'server' && email ? (now ? `We're emailing it to ${c.to} now. It shows as from ${c.from}, and when ${c.to} replies, the answer goes to ${Store.email}.` : `We'll email it to ${c.to} on ${fmt(rec.deliver)}, from ${c.from}. Replies go to ${Store.email}.`)
-      : now ? `Save it as a picture or copy the words to send to ${c.to}.` : `It'll be waiting in your mailbox on ${fmt(rec.deliver)}, ready to give to ${c.to}.`;
-    paintPreview($('#p-final'), c);
+    $('#p-done-title').textContent = now ? 'Your postcard is ready!' : `Saved for ${fmt(rec.deliver)}!`;
+    $('#p-done-sub').textContent = now
+      ? `Tap Send postcard and choose Messages, WhatsApp or Mail. It goes from your own phone, so ${c.to} sees it's from you.`
+      : (Store.mode === 'server' ? `On ${fmt(rec.deliver)} we'll email you a reminder, so you can send it to ${c.to} from your phone.` : `On ${fmt(rec.deliver)} it'll be waiting in your mailbox, ready to send to ${c.to}.`) + ' Or send it now:';
+    await paintPreview($('#p-final'), rec);
     shareButtons($('#p-final-actions'), rec);
     W.people.go(4); refreshBadge();
   } catch (e) { fail('people', e.message || 'Something went wrong. Please try again.'); }
-  finally { btn.disabled = false; btn.textContent = 'Send my letter'; }
+  finally { btn.disabled = false; btn.textContent = 'Make my postcard'; }
 };
 
 /* card → picture */
 function wrapLines(ctx, text, maxW){ const out = []; text.split('\n').forEach(par => { let line = ''; par.split(/\s+/).forEach(w => { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t; }); out.push(line); }); return out; }
-async function cardPng(c){
-  try { await document.fonts.load('40px "Patrick Hand"'); await document.fonts.load('700 52px Fredoka'); } catch {}
-  const t = THEMES.find(x => x.key === c.theme) || THEMES[0];
-  const Wd = 1200, pad = 90, cv = document.createElement('canvas'), ctx = cv.getContext('2d');
-  ctx.font = '44px "Patrick Hand", cursive'; const lines = wrapLines(ctx, c.body, Wd - pad * 2);
-  const H = Math.max(900, 300 + lines.length * 62 + 220); cv.width = Wd; cv.height = H;
-  ctx.fillStyle = t.bg; ctx.fillRect(0, 0, Wd, H);
-  ctx.strokeStyle = t.ink; ctx.lineWidth = 10; ctx.strokeRect(30, 30, Wd - 60, H - 60);
-  const p = new Path2D(STICKERS[c.sticker]); ctx.fillStyle = t.acc;
-  [[Wd - 230, 60, 6, 0], [70, H - 200, 4, -0.3], [Wd - 180, H - 170, 3, 0.4]].forEach(([x, y, s, r]) => { ctx.save(); ctx.translate(x, y); ctx.rotate(r); ctx.scale(s, s); ctx.fill(p, 'evenodd'); ctx.restore(); });
-  ctx.fillStyle = t.ink; ctx.font = '700 64px Fredoka, sans-serif'; ctx.fillText('To ' + c.to, pad, 170);
-  ctx.font = '44px "Patrick Hand", cursive'; lines.forEach((l, i) => ctx.fillText(l, pad, 270 + i * 62));
-  if (c.from) { ctx.font = '700 52px Fredoka, sans-serif'; ctx.fillText('From ' + c.from, pad, 270 + lines.length * 62 + 50); }
-  ctx.font = '700 26px Fredoka, sans-serif'; ctx.globalAlpha = .7; ctx.fillText('Made with Lettertide', pad, H - 70); ctx.globalAlpha = 1;
-  return new Promise(r => cv.toBlob(r, 'image/png'));
+/* ================= painted postcards ================= */
+// One picture holds the whole postcard: a painted scene with the greeting on the left,
+// the written side (message, stamp, postmark, To and From) on the right, inside an airmail border.
+const GREET = { thanks:'Thank you!', birthday:'Happy birthday!', getwell:'Get well soon!', love:'With love', hello:'Hello!', thanksgiving:'Happy Thanksgiving!', diwali:'Happy Diwali!', hanukkah:'Happy Hanukkah!', christmas:'Merry Christmas!', kwanzaa:'Happy Kwanzaa!', pongal:'Happy Pongal!', lunar:'Happy Lunar New Year!', eidfitr:'Eid Mubarak!', eidadha:'Eid Mubarak!', holi:'Happy Holi!', mothers:'Happy Mother’s Day!', fathers:'Happy Father’s Day!', rakhi:'Happy Raksha Bandhan!', newyear:'Happy New Year!', valentines:'Happy Valentine’s Day!', easter:'Happy Easter!', passover:'Happy Passover!', halloween:'Happy Halloween!', teacher:'Thank you, teacher!', grandparents:'Happy Grandparents Day!' };
+const TAU = Math.PI * 2;
+function rng(seed){ let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const seedOf = s => { let h = 2166136261; for (const ch of String(s)) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; };
+const vgrad = (ctx, h, a, b) => { const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, a); g.addColorStop(1, b); return g; };
+const dot = (ctx, x, y, r) => { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); };
+function rr(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function star(ctx, x, y, r, n = 5, inner = .45){ ctx.beginPath(); for (let i = 0; i < n * 2; i++) { const a = i * Math.PI / n - Math.PI / 2, q = i % 2 ? r * inner : r; ctx.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); } ctx.closePath(); ctx.fill(); }
+function heart(ctx, x, y, s){ ctx.beginPath(); ctx.moveTo(x, y + s * .3); ctx.bezierCurveTo(x, y, x - s * .5, y, x - s * .5, y + s * .3); ctx.bezierCurveTo(x - s * .5, y + s * .6, x, y + s * .78, x, y + s); ctx.bezierCurveTo(x, y + s * .78, x + s * .5, y + s * .6, x + s * .5, y + s * .3); ctx.bezierCurveTo(x + s * .5, y, x, y, x, y + s * .3); ctx.fill(); }
+function glow(ctx, x, y, r, c){ const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, c); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+function flame(ctx, x, y, s){ glow(ctx, x, y - s * .3, s * 2.2, 'rgba(255,200,80,.55)'); ctx.fillStyle = '#FFB020'; ctx.beginPath(); ctx.moveTo(x, y - s); ctx.quadraticCurveTo(x + s * .6, y - s * .15, x, y + s * .3); ctx.quadraticCurveTo(x - s * .6, y - s * .15, x, y - s); ctx.fill(); ctx.fillStyle = '#FFF2B3'; ctx.beginPath(); ctx.ellipse(x, y - s * .05, s * .16, s * .3, 0, 0, TAU); ctx.fill(); }
+function leaf(ctx, x, y, s, rot, c){ ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(0, -s); ctx.quadraticCurveTo(s * .75, -s * .2, 0, s); ctx.quadraticCurveTo(-s * .75, -s * .2, 0, -s); ctx.fill(); ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = Math.max(1, s * .06); ctx.beginPath(); ctx.moveTo(0, -s * .8); ctx.lineTo(0, s * 1.15); ctx.stroke(); ctx.restore(); }
+function flower(ctx, x, y, r, c, mid = '#FFC94D'){ ctx.fillStyle = c; for (let i = 0; i < 5; i++) { const a = i * TAU / 5; dot(ctx, x + Math.cos(a) * r * .6, y + Math.sin(a) * r * .6, r * .48); } ctx.fillStyle = mid; dot(ctx, x, y, r * .34); }
+function lantern(ctx, x, y, s, c, string = true){
+  if (string) { ctx.strokeStyle = 'rgba(60,30,10,.8)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, y - s * .7); ctx.stroke(); }
+  glow(ctx, x, y, s * 1.8, 'rgba(255,200,90,.5)');
+  ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(x, y, s * .78, s * .62, 0, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = 3; [.25, .55].forEach(k => { ctx.beginPath(); ctx.ellipse(x, y, s * .78 * k, s * .62, 0, 0, TAU); ctx.stroke(); });
+  ctx.fillStyle = '#F5B935'; ctx.fillRect(x - s * .38, y - s * .74, s * .76, s * .16); ctx.fillRect(x - s * .38, y + s * .58, s * .76, s * .16);
+  ctx.fillRect(x - 2, y + s * .74, 4, s * .45);
 }
+function diya(ctx, x, y, s){
+  flame(ctx, x, y - s * .55, s * .55);
+  ctx.fillStyle = '#C9471F'; ctx.beginPath(); ctx.moveTo(x - s, y - s * .2); ctx.quadraticCurveTo(x, y + s * .9, x + s, y - s * .2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#F5B935'; ctx.beginPath(); ctx.ellipse(x, y - s * .2, s, s * .18, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#FFE08A'; [-.5, 0, .5].forEach(k => dot(ctx, x + s * k, y + s * .18, s * .07));
+}
+function balloon(ctx, x, y, s, c){ ctx.strokeStyle = 'rgba(40,40,60,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y + s); ctx.quadraticCurveTo(x - s * .4, y + s * 2, x + s * .1, y + s * 3); ctx.stroke(); ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(x, y, s * .78, s, 0, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.beginPath(); ctx.ellipse(x - s * .28, y - s * .38, s * .14, s * .24, -.5, 0, TAU); ctx.fill(); }
+function scatter(ctx, R, w, h, n, fn){ for (let i = 0; i < n; i++) fn(R() * w, R() * h, R(), i); }
+
+const SCENES = {
+  lights: { name:'Diwali lights', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#1A0F45', '#5B1F73'); ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(255,230,160,.8)'; scatter(ctx, R, w, h * .55, 40, (x, y, r) => dot(ctx, x, y, 1 + r * 2.5));
+    const cx = w / 2, cy = h * .3, cols = ['#FF4FA0', '#FFB020', '#2BC4B6', '#FF6B3D', '#FFE08A'];
+    [210, 160, 112, 66].forEach((rad, k) => { ctx.fillStyle = cols[k]; for (let i = 0; i < 16; i++) { const a = i * TAU / 16 + k * .2; ctx.beginPath(); ctx.ellipse(cx + Math.cos(a) * rad * .62, cy + Math.sin(a) * rad * .62, rad * .3, rad * .13, a, 0, TAU); ctx.fill(); } });
+    ctx.fillStyle = '#FFE08A'; dot(ctx, cx, cy, 28); ctx.fillStyle = '#FF4FA0'; dot(ctx, cx, cy, 14);
+    [.14, .32, .5, .68, .86].forEach((k, i) => diya(ctx, w * k, h * .62 + (i % 2) * 22, 52));
+  }},
+  snow: { name:'Snowy Christmas', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#0B2350', '#2B5DB8'); ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.moveTo(0, h * .66); ctx.quadraticCurveTo(w * .3, h * .6, w * .55, h * .66); ctx.quadraticCurveTo(w * .8, h * .72, w, h * .64); ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.fill();
+    const cx = w / 2; [[.2, 230, '#1E7A46'], [.33, 190, '#22904F'], [.45, 150, '#2BA65C']].forEach(([k, half, c]) => { ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(cx, h * k - 30); ctx.lineTo(cx + half, h * (k + .2)); ctx.lineTo(cx - half, h * (k + .2)); ctx.fill(); });
+    ctx.fillStyle = '#7A3B12'; ctx.fillRect(cx - 26, h * .65, 52, 40);
+    ['#E23B3B', '#F5B935', '#FFFFFF', '#FF4FA0', '#4FC3F7'].forEach((c, i) => { ctx.fillStyle = c; for (let j = 0; j < 4; j++) dot(ctx, cx + (R() - .5) * 260 * (.6 + j * .15), h * (.3 + j * .09) + R() * 30, 13); });
+    ctx.fillStyle = '#FFD84D'; star(ctx, cx, h * .17, 44);
+    [[cx - 230, '#E23B3B'], [cx + 170, '#F5B935']].forEach(([x, c]) => { ctx.fillStyle = c; ctx.fillRect(x, h * .68, 70, 56); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x + 30, h * .68, 10, 56); });
+    ctx.fillStyle = '#FFFFFF'; scatter(ctx, R, w, h * .7, 70, (x, y, r) => dot(ctx, x, y, 2 + r * 5));
+  }},
+  candles: { name:'Hanukkah candles', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#0B2B6B', '#3C7BE0'); ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(200,225,255,.55)'; scatter(ctx, R, w, h * .7, 18, (x, y, r) => star(ctx, x, y, 8 + r * 12, 6, .55));
+    const cx = w / 2, base = h * .62, gold = '#F5B935';
+    ctx.fillStyle = gold; ctx.fillRect(cx - 250, base - 8, 500, 16); ctx.fillRect(cx - 8, base, 16, 90); ctx.fillRect(cx - 90, base + 86, 180, 18);
+    for (let i = -4; i <= 4; i++) { const x = cx + i * 58, top = i === 0 ? base - 230 : base - 170; ctx.fillStyle = gold; ctx.fillRect(x - 14, base - 30, 28, 22); ctx.fillStyle = i === 0 ? '#FFFFFF' : '#CFE3FF'; ctx.fillRect(x - 9, top, 18, base - 30 - top); flame(ctx, x, top - 16, 24); }
+  }},
+  moon: { name:'Eid moon', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#073B4C', '#0F7C7A'); ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(255,240,190,.9)'; scatter(ctx, R, w, h * .7, 30, (x, y, r) => star(ctx, x, y, 3 + r * 9, 5, .5));
+    glow(ctx, w * .66, h * .22, 220, 'rgba(255,220,130,.35)'); ctx.fillStyle = '#FFD86B'; dot(ctx, w * .66, h * .22, 120);
+    ctx.fillStyle = '#0A4E5C'; dot(ctx, w * .66 + 52, h * .22 - 30, 106);
+    [[.18, .26, '#F5B935'], [.36, .4, '#E23B3B'], [.84, .5, '#FFB020']].forEach(([kx, ky, c]) => lantern(ctx, w * kx, h * ky, 62, c));
+    // mosque skyline: hall, big dome with finial, two minarets
+    const ink = '#05323C', cx = w * .5, gy = h * .74; ctx.fillStyle = ink;
+    ctx.fillRect(0, gy, w, h - gy);
+    ctx.fillRect(cx - 190, gy - 120, 380, 120);
+    ctx.beginPath(); ctx.arc(cx, gy - 120, 120, Math.PI, 0); ctx.fill();
+    ctx.fillRect(cx - 3, gy - 290, 6, 50); ctx.beginPath(); ctx.arc(cx, gy - 296, 10, 0, TAU); ctx.fill();
+    [cx - 280, cx + 280].forEach(x => { ctx.fillRect(x - 22, gy - 300, 44, 300); ctx.fillRect(x - 32, gy - 230, 64, 14); ctx.beginPath(); ctx.moveTo(x - 26, gy - 300); ctx.lineTo(x, gy - 360); ctx.lineTo(x + 26, gy - 300); ctx.fill(); });
+    [cx - 120, cx - 40, cx + 40, cx + 120].forEach(x => { ctx.fillStyle = 'rgba(255,214,107,.85)'; ctx.beginPath(); ctx.moveTo(x - 16, gy - 10); ctx.lineTo(x - 16, gy - 60); ctx.arc(x, gy - 60, 16, Math.PI, 0); ctx.lineTo(x + 16, gy - 10); ctx.fill(); });
+  }},
+  lanterns: { name:'New Year lanterns', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#B30F25', '#E8343A'); ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#4A1A12'; ctx.lineWidth = 12; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-20, h * .62); ctx.quadraticCurveTo(w * .3, h * .5, w * .55, h * .58); ctx.stroke(); ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(w * .25, h * .55); ctx.lineTo(w * .32, h * .45); ctx.stroke();
+    ['#FFB3C7', '#FFFFFF', '#FF8FB1'].forEach(c => { for (let i = 0; i < 7; i++) flower(ctx, R() * w * .55, h * (.45 + R() * .15), 14 + R() * 10, c, '#F5B935'); });
+    [[.18, .2], [.42, .3], [.68, .16], [.86, .34]].forEach(([kx, ky], i) => lantern(ctx, w * kx, h * ky, 70 + (i % 2) * 14, i % 2 ? '#FF3B3B' : '#E8002B'));
+    ctx.fillStyle = 'rgba(255,215,100,.9)'; scatter(ctx, R, w, h * .7, 30, (x, y, r) => dot(ctx, x, y, 2 + r * 3));
+  }},
+  colors: { name:'Holi colors', draw(ctx, w, h, R){
+    ctx.fillStyle = '#FFF6E6'; ctx.fillRect(0, 0, w, h);
+    const cols = ['#FF4FA0', '#FFC21A', '#2BB673', '#3D7BFF', '#8A4DFF', '#FF6B3D', '#00C2D1'];
+    for (let i = 0; i < 9; i++) { const c = cols[i % cols.length], cx = R() * w, cy = R() * h * .72; ctx.globalAlpha = .85; ctx.fillStyle = c; for (let j = 0; j < 26; j++) { const a = R() * TAU, d = Math.pow(R(), .7) * 150; dot(ctx, cx + Math.cos(a) * d, cy + Math.sin(a) * d, 10 + R() * 44 * (1 - d / 170)); } }
+    ctx.globalAlpha = 1;
+  }},
+  leaves: { name:'Autumn leaves', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#FFB25B', '#D9572B'); ctx.fillRect(0, 0, w, h);
+    const cols = ['#8E2A1F', '#E23B3B', '#FFD24D', '#7A3B12', '#F08C2E', '#B5381E'];
+    scatter(ctx, R, w, h * .78, 38, (x, y, r, i) => leaf(ctx, x, y, 24 + r * 38, R() * TAU, cols[i % cols.length]));
+    ctx.fillStyle = '#F08C2E'; [[w * .3, h * .66, 70], [w * .52, h * .68, 56]].forEach(([x, y, s]) => { [-.5, 0, .5].forEach(k => { ctx.beginPath(); ctx.ellipse(x + k * s * .7, y, s * .55, s * .7, 0, 0, TAU); ctx.fill(); }); ctx.fillStyle = '#4C7A2A'; ctx.fillRect(x - 6, y - s * .95, 12, s * .35); ctx.fillStyle = '#F08C2E'; });
+  }},
+  kinara: { name:'Kwanzaa candles', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#1B1B1B', '#2E2E2E'); ctx.fillRect(0, 0, w, h);
+    ['#C8102E', '#111111', '#1E8A3C'].forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(0, h * (.72 + i * .035), w, h * .035); });
+    ctx.fillStyle = 'rgba(255,220,140,.7)'; scatter(ctx, R, w, h * .5, 25, (x, y, r) => dot(ctx, x, y, 1.5 + r * 2.5));
+    const cx = w / 2, base = h * .62; ctx.fillStyle = '#7A4A1C'; rr(ctx, cx - 300, base, 600, 46, 14); ctx.fill();
+    ['#C8102E', '#C8102E', '#C8102E', '#111111', '#1E8A3C', '#1E8A3C', '#1E8A3C'].forEach((c, i) => { const x = cx + (i - 3) * 84, top = base - (i === 3 ? 230 : 190); ctx.fillStyle = c; ctx.fillRect(x - 16, top, 32, base - top); ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 2; ctx.strokeRect(x - 16, top, 32, base - top); flame(ctx, x, top - 20, 26); });
+  }},
+  sunshine: { name:'Sunshine and kites', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#5EC2F2', '#C8EBFF'); ctx.fillRect(0, 0, w, h);
+    const sx = w * .7, sy = h * .2; glow(ctx, sx, sy, 230, 'rgba(255,230,120,.6)'); ctx.fillStyle = '#FFC21A'; for (let i = 0; i < 14; i++) { const a = i * TAU / 14; ctx.save(); ctx.translate(sx, sy); ctx.rotate(a); ctx.fillRect(110, -10, 60, 20); ctx.restore(); } dot(ctx, sx, sy, 100);
+    ctx.fillStyle = '#FFFFFF'; [[.18, .2], [.42, .1]].forEach(([kx, ky]) => { [0, 50, 100].forEach((d, i) => dot(ctx, w * kx + d, h * ky + (i === 1 ? -22 : 0), 44)); });
+    [['#E23B3B', .2, .42], ['#8A4DFF', .5, .34], ['#2BB673', .82, .5]].forEach(([c, kx, ky]) => { const x = w * kx, y = h * ky; ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(x, y - 60); ctx.lineTo(x + 45, y); ctx.lineTo(x, y + 70); ctx.lineTo(x - 45, y); ctx.fill(); ctx.strokeStyle = 'rgba(30,30,60,.55)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y + 70); ctx.bezierCurveTo(x + 40, y + 160, x - 40, y + 220, x + 10, h); ctx.stroke(); });
+    ctx.fillStyle = '#4FB548'; ctx.beginPath(); ctx.moveTo(0, h * .7); ctx.quadraticCurveTo(w * .5, h * .62, w, h * .7); ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.fill();
+  }},
+  blooms: { name:'Flower garden', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#FFE1EC', '#FFB3CE'); ctx.fillRect(0, 0, w, h);
+    const cols = ['#FF4F8B', '#FF8A3D', '#8A4DFF', '#FFFFFF', '#E23B3B', '#FFC21A'];
+    scatter(ctx, R, w, h * .75, 20, (x, y, r) => leaf(ctx, x, y, 22 + r * 18, R() * TAU, '#3FA35B'));
+    scatter(ctx, R, w, h * .75, 34, (x, y, r, i) => flower(ctx, x, y, 24 + r * 30, cols[i % cols.length], i % 2 ? '#FFC21A' : '#7A3B12'));
+  }},
+  stars: { name:'Starry sky', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#0E1E4A', '#2B4FA8'); ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#FFFFFF'; scatter(ctx, R, w, h * .75, 60, (x, y, r) => dot(ctx, x, y, 1 + r * 2.5));
+    ['#FFD84D', '#FFB020', '#FFFFFF'].forEach(c => { ctx.fillStyle = c; for (let i = 0; i < 7; i++) star(ctx, R() * w, R() * h * .7, 14 + R() * 34); });
+    ctx.fillStyle = '#FFE6A3'; dot(ctx, w * .2, h * .18, 70); ctx.fillStyle = '#16305F'; dot(ctx, w * .2 + 32, h * .18 - 14, 62);
+  }},
+  party: { name:'Birthday balloons', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#FFF0B8', '#FFC94D'); ctx.fillRect(0, 0, w, h);
+    const cols = ['#E23B3B', '#1F4FA0', '#FF4FA0', '#2BB673', '#8A4DFF', '#FF8A3D'];
+    scatter(ctx, R, w, h * .8, 70, (x, y, r, i) => { ctx.save(); ctx.translate(x, y); ctx.rotate(r * TAU); ctx.fillStyle = cols[i % cols.length]; ctx.fillRect(-7, -3, 14, 6 + r * 6); ctx.restore(); });
+    [[.18, .22, 0], [.38, .16, 1], [.6, .24, 2], [.82, .15, 3], [.28, .4, 4], [.72, .42, 5]].forEach(([kx, ky, c]) => balloon(ctx, w * kx, h * ky, 62, cols[c]));
+  }},
+  hearts: { name:'Hearts', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#FF7A98', '#E23B3B'); ctx.fillRect(0, 0, w, h);
+    const cols = ['#FFFFFF', '#FFD1DC', '#B3122E', '#FF4F8B', '#FFC94D'];
+    scatter(ctx, R, w, h * .8, 34, (x, y, r, i) => { ctx.fillStyle = cols[i % cols.length]; heart(ctx, x, y, 26 + r * 70); });
+    ctx.fillStyle = '#FFFFFF'; heart(ctx, w / 2, h * .2, 220);
+  }},
+  eggs: { name:'Spring eggs', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#BFE9FF', '#E9FFF1'); ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#67C46E'; ctx.beginPath(); ctx.moveTo(0, h * .58); for (let x = 0; x <= w; x += 20) ctx.lineTo(x, h * .58 - (x / 20 % 2 ? 24 : 0)); ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.fill();
+    const cols = [['#FF8FB1', '#FFFFFF'], ['#8A4DFF', '#FFC21A'], ['#4FC3F7', '#FFFFFF'], ['#FFC21A', '#E23B3B'], ['#2BB673', '#FFF4C2']];
+    [[.2, .5], [.42, .55], [.64, .5], [.84, .56], [.32, .66], [.56, .68]].forEach(([kx, ky], i) => { const [a, b] = cols[i % cols.length], x = w * kx, y = h * ky; ctx.save(); ctx.beginPath(); ctx.ellipse(x, y, 52, 70, 0, 0, TAU); ctx.clip(); ctx.fillStyle = a; ctx.fillRect(x - 60, y - 80, 120, 160); ctx.strokeStyle = b; ctx.lineWidth = 10; ctx.beginPath(); for (let k = 0; k < 7; k++) ctx.lineTo(x - 60 + k * 20, y - 10 + (k % 2 ? 18 : -2)); ctx.stroke(); ctx.fillStyle = b; [-.5, 0, .5].forEach(k => dot(ctx, x + k * 50, y + 34, 8)); ctx.restore(); });
+    flower(ctx, w * .12, h * .2, 34, '#FFFFFF'); flower(ctx, w * .86, h * .26, 28, '#FF8FB1');
+  }},
+  pumpkins: { name:'Halloween night', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#24113F', '#5B2A86'); ctx.fillRect(0, 0, w, h);
+    glow(ctx, w * .7, h * .2, 220, 'rgba(255,230,160,.35)'); ctx.fillStyle = '#FFE6A3'; dot(ctx, w * .7, h * .2, 110);
+    ctx.fillStyle = '#16092B'; [[.2, .2], [.42, .12], [.32, .3]].forEach(([kx, ky]) => { const x = w * kx, y = h * ky; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x - 30, y - 30, x - 60, y - 6); ctx.quadraticCurveTo(x - 40, y - 4, x - 34, y + 10); ctx.quadraticCurveTo(x - 16, y - 4, x, y + 8); ctx.quadraticCurveTo(x + 16, y - 4, x + 34, y + 10); ctx.quadraticCurveTo(x + 40, y - 4, x + 60, y - 6); ctx.quadraticCurveTo(x + 30, y - 30, x, y); ctx.fill(); });
+    [[.28, .62, 90], [.62, .66, 74]].forEach(([kx, ky, s]) => { const x = w * kx, y = h * ky; ctx.fillStyle = '#FF8A1A'; [-.5, 0, .5].forEach(k => { ctx.beginPath(); ctx.ellipse(x + k * s * .6, y, s * .5, s * .62, 0, 0, TAU); ctx.fill(); }); ctx.fillStyle = '#3E7A2A'; ctx.fillRect(x - 7, y - s * .82, 14, s * .3); ctx.fillStyle = '#FFE08A'; [-.28, .28].forEach(k => { ctx.beginPath(); ctx.moveTo(x + k * s, y - s * .2); ctx.lineTo(x + k * s + 16, y); ctx.lineTo(x + k * s - 16, y); ctx.fill(); }); ctx.beginPath(); ctx.ellipse(x, y + s * .25, s * .4, s * .12, 0, 0, Math.PI); ctx.fill(); });
+  }},
+  apples: { name:'Apples and pencils', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#E9F6FF', '#BDE3FF'); ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(31,79,160,.18)'; ctx.lineWidth = 2; for (let y = 40; y < h; y += 44) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+    [[.25, .3, 90], [.66, .22, 70], [.5, .52, 80]].forEach(([kx, ky, s]) => { const x = w * kx, y = h * ky; ctx.fillStyle = '#E23B3B'; [-.3, .3].forEach(k => dot(ctx, x + k * s, y, s * .62)); ctx.fillStyle = 'rgba(255,255,255,.35)'; dot(ctx, x - s * .35, y - s * .2, s * .14); ctx.fillStyle = '#6B3A12'; ctx.fillRect(x - 4, y - s * .85, 8, s * .35); leaf(ctx, x + s * .25, y - s * .75, s * .25, 1.2, '#3FA35B'); });
+    [[.12, .62, -.4, '#F5B935'], [.86, .58, .5, '#FF4FA0']].forEach(([kx, ky, rot, c]) => { ctx.save(); ctx.translate(w * kx, h * ky); ctx.rotate(rot); ctx.fillStyle = c; ctx.fillRect(-16, -110, 32, 200); ctx.fillStyle = '#F4D2A8'; ctx.beginPath(); ctx.moveTo(-16, 90); ctx.lineTo(16, 90); ctx.lineTo(0, 130); ctx.fill(); ctx.fillStyle = '#333'; ctx.beginPath(); ctx.moveTo(-6, 115); ctx.lineTo(6, 115); ctx.lineTo(0, 130); ctx.fill(); ctx.fillStyle = '#FF8FB1'; ctx.fillRect(-16, -130, 32, 22); ctx.restore(); });
+  }},
+  fireworks: { name:'Fireworks', draw(ctx, w, h, R){
+    ctx.fillStyle = vgrad(ctx, h, '#0B1630', '#2A2F6B'); ctx.fillRect(0, 0, w, h);
+    const cols = ['#FFD84D', '#FF4FA0', '#4FC3F7', '#2BB673', '#FF8A3D', '#FFFFFF'];
+    [[.25, .2, 130], [.68, .16, 150], [.48, .42, 110], [.18, .5, 80], [.82, .5, 90]].forEach(([kx, ky, s], i) => { const x = w * kx, y = h * ky, c = cols[i % cols.length]; glow(ctx, x, y, s * 1.2, 'rgba(255,255,255,.12)'); ctx.strokeStyle = c; ctx.fillStyle = c; ctx.lineWidth = 5; ctx.lineCap = 'round'; for (let k = 0; k < 18; k++) { const a = k * TAU / 18; ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * s * .25, y + Math.sin(a) * s * .25); ctx.lineTo(x + Math.cos(a) * s, y + Math.sin(a) * s); ctx.stroke(); dot(ctx, x + Math.cos(a) * s * 1.1, y + Math.sin(a) * s * 1.1, 5); } });
+    ctx.fillStyle = '#FFFFFF'; scatter(ctx, R, w, h * .7, 40, (x, y, r) => dot(ctx, x, y, 1 + r * 2));
+  }}
+};
+const SCENE_KEYS = Object.keys(SCENES);
+const SCENE_FOR = { thanks:'hearts', birthday:'party', getwell:'sunshine', love:'hearts', hello:'stars', thanksgiving:'leaves', diwali:'lights', hanukkah:'candles', christmas:'snow', kwanzaa:'kinara', pongal:'sunshine', lunar:'lanterns', eidfitr:'moon', eidadha:'moon', holi:'colors', mothers:'blooms', fathers:'stars', rakhi:'blooms', newyear:'fireworks', valentines:'hearts', easter:'eggs', passover:'blooms', halloween:'pumpkins', teacher:'apples', grandparents:'blooms' };
+async function postcardFonts(){ try { await Promise.all([document.fonts.load('700 80px Fredoka'), document.fonts.load('48px "Patrick Hand"')]); } catch {} }
+function fitFont(ctx, text, maxW, start, min, fam){ let s = start; ctx.font = `${fam.replace('%', s)}`; while (s > min && ctx.measureText(text).width > maxW) { s -= 2; ctx.font = `${fam.replace('%', s)}`; } return s; }
+function drawScene(ctx, key, w, h, seed){ (SCENES[key] || SCENES.hearts).draw(ctx, w, h, rng(seed)); }
+async function postcardCanvas(c, scale = 1){
+  await postcardFonts();
+  const W = 1800, H = 1200, cv = document.createElement('canvas'); cv.width = W * scale; cv.height = H * scale;
+  const ctx = cv.getContext('2d'); ctx.scale(scale, scale);
+  const scene = c.scene || SCENE_FOR[c.occasion] || 'hearts', seed = seedOf((c.to || '') + (c.from || '') + scene);
+  // airmail border
+  ctx.fillStyle = '#FFFDF8'; ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.rect(26, 26, W - 52, H - 52); ctx.clip('evenodd');
+  for (let i = -H; i < W + H; i += 72) [['#E23B3B', 0], ['#1F4FA0', 36]].forEach(([col, o]) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(i + o, 0); ctx.lineTo(i + o + 22, 0); ctx.lineTo(i + o + 22 - H, H); ctx.lineTo(i + o - H, H); ctx.fill(); });
+  ctx.restore();
+  // picture side
+  const px = 60, py = 60, pw = 860, ph = H - 120;
+  ctx.save(); rr(ctx, px, py, pw, ph, 26); ctx.clip(); ctx.translate(px, py); drawScene(ctx, scene, pw, ph, seed); ctx.restore();
+  // greeting ribbon
+  const greet = GREET[c.occasion] || 'Hello!';
+  ctx.save(); ctx.translate(px + pw / 2, py + ph - 150); ctx.rotate(-.025);
+  ctx.shadowColor = 'rgba(0,0,0,.25)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8; ctx.fillStyle = '#FFFDF8'; rr(ctx, -pw / 2 + 44, -92, pw - 88, 184, 22); ctx.fill(); ctx.shadowColor = 'transparent';
+  ctx.fillStyle = '#E23B3B'; ctx.fillRect(-pw / 2 + 44, -92, 16, 184); ctx.fillStyle = '#1F4FA0'; ctx.fillRect(pw / 2 - 60, -92, 16, 184);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#16305F'; fitFont(ctx, greet, pw - 170, 92, 44, '700 %px Fredoka, sans-serif'); ctx.fillText(greet, 0, 6);
+  ctx.fillStyle = '#E23B3B'; ctx.font = '600 40px Fredoka, sans-serif'; ctx.fillText(c.to ? `for ${c.to}` : 'for you', 0, 62);
+  ctx.restore();
+  // written side
+  const mx = 980, mw = 760;
+  ctx.strokeStyle = '#E6DCC6'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(mx - 24, 110); ctx.lineTo(mx - 24, H - 110); ctx.stroke();
+  // stamp
+  const sx = 1556, sy = 80, sw = 170, sh = 206;
+  ctx.fillStyle = '#FFFFFF'; ctx.shadowColor = 'rgba(0,0,0,.18)'; ctx.shadowBlur = 10; ctx.fillRect(sx, sy, sw, sh); ctx.shadowColor = 'transparent';
+  ctx.fillStyle = '#FFFDF8'; for (let x = sx; x <= sx + sw; x += 17) { dot(ctx, x, sy, 6); dot(ctx, x, sy + sh, 6); } for (let y = sy; y <= sy + sh; y += 17) { dot(ctx, sx, y, 6); dot(ctx, sx + sw, y, 6); }
+  ctx.save(); ctx.beginPath(); ctx.rect(sx + 16, sy + 16, sw - 32, sh - 62); ctx.clip(); ctx.translate(sx + 16, sy + 16); ctx.scale((sw - 32) / pw, (sw - 32) / pw); drawScene(ctx, scene, pw, ph, seed); ctx.restore();
+  ctx.fillStyle = '#16305F'; ctx.textAlign = 'center'; ctx.font = '700 20px Fredoka, sans-serif'; ctx.fillText('LETTERTIDE', sx + sw / 2, sy + sh - 22);
+  // postmark
+  ctx.save(); ctx.translate(1488, 262); ctx.rotate(-.18); ctx.strokeStyle = 'rgba(31,79,160,.6)'; ctx.fillStyle = 'rgba(31,79,160,.7)'; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.arc(0, 0, 82, 0, TAU); ctx.stroke(); ctx.beginPath(); ctx.arc(0, 0, 66, 0, TAU); ctx.stroke();
+  ctx.textAlign = 'center'; ctx.font = '700 17px Fredoka, sans-serif'; ctx.fillText('AIRMAIL', 0, -26);
+  ctx.font = '700 21px Fredoka, sans-serif'; ctx.fillText(new Date(c.deliver || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase(), 0, 8);
+  ctx.font = '700 17px Fredoka, sans-serif'; ctx.fillText(String(new Date(c.deliver || Date.now()).getFullYear()), 0, 36);
+  for (let k = 0; k < 3; k++) { ctx.beginPath(); for (let x = -260; x <= -96; x += 4) ctx.lineTo(x, -26 + k * 26 + Math.sin(x / 12) * 6); ctx.stroke(); }
+  ctx.restore();
+  // message
+  const body = (c.body || '').trim(); let size = 76, lines;
+  for (; size >= 26; size -= 2) { ctx.font = `${size}px "Patrick Hand", "Comic Sans MS", cursive`; lines = wrapLines(ctx, body, mw); if (lines.length * size * 1.3 <= 620) break; }
+  ctx.textAlign = 'left'; ctx.fillStyle = '#16305F'; lines.forEach((l, i) => ctx.fillText(l, mx, 340 + size + i * size * 1.3));
+  // from and to
+  ctx.fillStyle = '#E23B3B'; ctx.font = '700 46px Fredoka, sans-serif'; ctx.fillText(c.from ? `Love, ${c.from}` : 'With love', mx, 1078);
+  ctx.strokeStyle = '#C9BFA8'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(1420, 1090); ctx.lineTo(1740, 1090); ctx.stroke();
+  ctx.fillStyle = '#5B6888'; ctx.font = '700 22px Fredoka, sans-serif'; ctx.fillText('TO', 1420, 1030); ctx.fillStyle = '#16305F'; fitFont(ctx, c.to || '', 300, 44, 24, '%px "Patrick Hand", cursive'); ctx.fillText(c.to || '', 1460, 1078);
+  return cv;
+}
+window.lettertidePostcard = postcardCanvas; // lets tools draw a postcard without going through the screens
+async function postcardBlob(c){ const cv = await postcardCanvas(c, 1); return new Promise(r => cv.toBlob(r, 'image/png')); }
+async function paintPreview(box, c){
+  const cv = await postcardCanvas(c, .5);
+  box.textContent = ''; const img = el('img', { src: cv.toDataURL('image/png'), alt: `Postcard for ${c.to}: ${GREET[c.occasion] || ''} ${c.body || ''}`.slice(0, 300) }); box.append(img);
+}
+function renderPictures(){
+  const box = $('#p-pics'); box.textContent = '';
+  const mine = SCENE_FOR[OCC[pOcc].key];
+  const keys = [mine, ...SCENE_KEYS.filter(k => k !== mine)];
+  keys.forEach(k => {
+    const cv = document.createElement('canvas'); cv.width = 172; cv.height = 226; const ctx = cv.getContext('2d'); ctx.scale(172 / 860, 226 / 1080); drawScene(ctx, k, 860, 1080, 7);
+    const b = el('button', { type:'button', className:'pic', 'aria-label': SCENES[k].name, 'aria-pressed': String(k === pScene), title: SCENES[k].name });
+    b.append(cv, el('span', { textContent: SCENES[k].name }));
+    b.onclick = () => { pScene = k; draft.pScene = k; ls.set(DRAFT, draft); $$('.pic', box).forEach(x => x.setAttribute('aria-pressed', x === b)); paintPreview($('#p-preview'), currentCard()); };
+    box.append(b);
+  });
+}
+
 function shareButtons(box, rec){
   box.textContent = '';
-  const msg = el('p', { className:'note', role:'status' });
-  const pic = el('button', { type:'button', className:'big go', textContent:'Save as a picture' });
-  pic.onclick = async () => {
-    const blob = await cardPng(rec), name = `card-for-${rec.to.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
-    if (Store.downloads) { try { await Store.downloads.save({ filename:name, data:blob }); msg.className = 'ok'; msg.textContent = 'Saved! Now you can send it in a message or print it at home.'; } catch (e) { if (e.code !== 'declined') { msg.className = 'err'; msg.textContent = 'Saving pictures isn\'t available here. Try copying the words.'; } } }
-    else { const a = el('a', { href: URL.createObjectURL(blob), download: name }); document.body.append(a); a.click(); a.remove(); }
+  const msg = el('p', { className:'note', role:'status', style:'flex-basis:100%' });
+  const name = `postcard-for-${(rec.to || 'you').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
+  async function savePicture(blob, quiet){
+    if (Store.downloads) { try { await Store.downloads.save({ filename:name, data:blob }); msg.className = 'ok'; msg.textContent = quiet || 'Saved! Now open Messages, WhatsApp or your email, attach the picture, and send it.'; } catch (e) { if (e.code !== 'declined') { msg.className = 'err'; msg.textContent = 'Saving pictures isn’t available here. Open Lettertide on your phone to send it.'; } } }
+    else { const a = el('a', { href: URL.createObjectURL(blob), download: name }); document.body.append(a); a.click(); a.remove(); msg.className = 'ok'; msg.textContent = quiet || 'Saved! Now open Messages, WhatsApp or your email, attach the picture, and send it.'; }
+  }
+  const send = el('button', { type:'button', className:'big go', innerHTML:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>Send postcard' });
+  send.onclick = async () => {
+    send.disabled = true; msg.className = 'note'; msg.textContent = 'Getting your postcard ready…';
+    try {
+      const blob = await postcardBlob(rec), file = new File([blob], name, { type:'image/png' });
+      if (navigator.canShare && navigator.canShare({ files:[file] })) {
+        try {
+          await navigator.share({ files:[file], title:`A postcard for ${rec.to}`, text:`A postcard for you${rec.from ? ' from ' + rec.from : ''}` });
+          msg.className = 'ok'; msg.textContent = 'Sent! 💌'; rec.sent = Date.now(); Store.update(rec.id, { sent: rec.sent }).catch(() => {}); refreshBadge();
+        } catch (e) { if (e.name === 'AbortError') msg.textContent = ''; else await savePicture(blob); }
+      } else await savePicture(blob, 'This device can’t open the share menu, so we saved the postcard picture. Attach it in Messages, WhatsApp or your email.');
+    } finally { send.disabled = false; }
   };
+  const save = el('button', { type:'button', className:'soft', textContent:'Save picture' });
+  save.onclick = async () => savePicture(await postcardBlob(rec), 'Saved! You can print it or attach it to any message.');
   const copy = el('button', { type:'button', className:'soft', textContent:'Copy the words' });
-  copy.onclick = async () => { try { await navigator.clipboard.writeText(rec.body); msg.className = 'ok'; msg.textContent = 'Copied! Paste it into a message or email.'; } catch { msg.className = 'note'; msg.textContent = 'Select the words on the card and copy them.'; } };
-  const subject = `A card for you${rec.from ? ' from ' + rec.from : ''}`;
-  const own = el('a', { className:'soft', textContent:'Send from my own email', style:'text-decoration:none;display:inline-grid;place-items:center',
-    href: `mailto:${encodeURIComponent(rec.recipientEmail || '')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(rec.body + (rec.from ? '\n\nFrom ' + rec.from : ''))}` });
-  own.onclick = () => { msg.className = 'note'; msg.textContent = 'Your email app should open with the card ready. If nothing opens, use "Copy the words" and paste it into an email.'; };
-  box.append(pic, own, copy, msg);
-  if (!Store.downloads && Store.mode !== 'server') pic.hidden = !!window.claude;
+  copy.onclick = async () => { try { await navigator.clipboard.writeText(rec.body); msg.className = 'ok'; msg.textContent = 'Copied!'; } catch { msg.className = 'note'; msg.textContent = 'Select the words on the postcard and copy them.'; } };
+  box.append(send, save, copy, msg);
 }
 
 /* ---------- Santa ---------- */
@@ -822,12 +1044,12 @@ const ICON = {
   people: '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="8" width="34" height="24" rx="3" fill="#F5B935"/><path d="M4 11l16 11 16-11" fill="none" stroke="#16305F" stroke-width="3"/><path d="M20 30s-5-3-5-6.2c0-1.5 1.1-2.6 2.5-2.6 1.1 0 2 .7 2.5 1.5.5-.8 1.4-1.5 2.5-1.5 1.4 0 2.5 1.1 2.5 2.6C25 27 20 30 20 30z" fill="#E23B3B"/></svg>',
   santa: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 30C10 16 18 6 28 7c4 .4 7 3.4 8 7-3-2.4-6.5-2.4-8 .8C25 20 24 25 24 30z" fill="#E23B3B"/><rect x="5" y="28" width="24" height="7" rx="3.5" fill="#FFFDF8" stroke="#E23B3B" stroke-width="1.5"/><circle cx="36" cy="16" r="4" fill="#FFFDF8" stroke="#E23B3B" stroke-width="1.5"/></svg>'
 };
-async function refreshBadge(){ try { const l = await Store.list(); const n = l.filter(r => (r.kind || 'future') === 'future' && r.deliver <= Date.now() && !r.opened).length; const b = $('#badge'); b.hidden = !n; b.textContent = n ? `${n} new` : ''; } catch {} }
+async function refreshBadge(){ try { const l = await Store.list(); const n = l.filter(r => ((r.kind || 'future') === 'future' && r.deliver <= Date.now() && !r.opened) || (r.kind === 'people' && !r.sent && r.deliver > r.created + 60e3 && r.deliver <= Date.now())).length; const b = $('#badge'); b.hidden = !n; b.textContent = n ? `${n} new` : ''; } catch {} }
 function itemCard(r){
   const now = Date.now(), arrived = now >= r.deliver;
   let c, title, when, pill, peek = '';
   if (r.kind === 'santa') { c = 'var(--santa)'; title = `${r.name}'s letter to Santa`; when = fmt(r.created); pill = el('span', { className:'pill', textContent:'Santa wrote back' }); peek = r.reply; }
-  else if (r.kind === 'people') { c = 'var(--yellow)'; title = `To ${r.to}`; when = arrived ? (r.created >= r.deliver - 60e3 ? 'Sent ' + fmt(r.created) : 'Ready since ' + fmt(r.deliver)) : 'Ready on ' + fmt(r.deliver); pill = el('span', { className:'pill' + (arrived ? '' : ' wait'), textContent: arrived ? 'Ready to give' : 'Waiting' }); peek = r.body; }
+  else if (r.kind === 'people') { c = 'var(--yellow)'; title = `Postcard for ${r.to}`; when = r.sent ? 'Sent ' + fmt(r.sent) : arrived ? 'Ready to send' : 'Send on ' + fmt(r.deliver); pill = el('span', { className:'pill' + (arrived && !r.sent ? '' : ' wait'), textContent: r.sent ? 'Sent' : arrived ? 'Send it today!' : 'Waiting' }); peek = r.body; }
   else { c = 'var(--sky)'; title = arrived ? 'A letter from past you!' : 'Letter to future me';
     const days = Math.max(0, Math.ceil((r.deliver - now) / DAY));
     when = arrived ? `Written ${fmt(r.created)}` : `Comes back ${fmt(r.deliver)} · ${days.toLocaleString()} days`;
@@ -904,10 +1126,10 @@ async function openItem(r){
     return;
   }
   if (r.kind === 'people') {
-    const card = readShell('var(--yellow)', `To ${r.to}`); $('#read').style.setProperty('--on', '#16305F');
+    const card = readShell('var(--yellow)', `Postcard for ${r.to}`); $('#read').style.setProperty('--on', '#16305F');
     const pv = el('div', { className:'preview' }); paintPreview(pv, r);
     const acts = el('div', { className:'actions' }); shareButtons(acts, r);
-    card.append(el('p', { className:'note', textContent: now >= r.deliver ? (r.recipientEmail && Store.mode === 'server' ? `Emailed to ${r.recipientEmail}${r.delivered ? '' : ' (sending soon)'}.` : 'Ready to give!') : `Ready on ${fmt(r.deliver)}.` }), pv, acts, el('div', { className:'actions' }, deleteBtn(r)));
+    card.append(el('p', { className:'note', textContent: r.sent ? `You sent this on ${fmt(r.sent)}.` : now >= r.deliver ? 'Ready to send!' : `We'll remind you on ${fmt(r.deliver)}.` }), pv, acts, el('div', { className:'actions' }, deleteBtn(r)));
     return;
   }
   // future letter

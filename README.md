@@ -26,7 +26,7 @@ Lettertide brings every letter that matters into one bright, friendly place, whe
 | **When it arrives** | One date, one email | Months to 100 years later, on Thanksgiving, on any day, or right now |
 | **What comes back** | The letter | The letter, a time capsule shown "then and now", a guess to check, and a "write back" button that keeps the conversation going |
 | **Santa** | Not included | Santa replies right away, with child-safe rules built in |
-| **Cards for others** | Usually not included | Cards for festivals across cultures and everyday moments, delivered on the day under the writer's name, and replies go back to the family |
+| **Cards for others** | Usually not included | Painted postcards for holidays around the world, sent as a picture from your own phone, with a reminder on the day |
 | **Built to last** | Depends on one email address | The whole letter travels inside the arrival email, a yearly "still you?" check, an optional backup contact, and a full export |
 | **Privacy** | Varies | Optional secret word that encrypts the letter in your own browser |
 
@@ -37,9 +37,9 @@ Lettertide brings every letter that matters into one bright, friendly place, whe
 - **Made for small hands.** One question at a time, giant tap targets, a progress trail of dots, and idea buttons like *"Right now I love…"* or *"This year I'm thankful for you because…"* for when a child gets stuck.
 - **Letters that answer back.** A future letter brings back a time capsule (favorite food, best friend, what I want to be) beside empty boxes for who you are now, asks whether your guess came true, and lets you write back to the future.
 - **Santa writes back, safely.** Santa never promises a specific present, never asks for an address or school, never suggests keeping secrets, and gently tells a child to talk to a trusted grown-up if they mention being hurt or scared.
-- **Cards for every culture's big days.** Diwali, Eid al-Fitr and Eid al-Adha, Hanukkah, Christmas, Kwanzaa, Lunar New Year, Holi, Raksha Bandhan, Pongal and Sankranti, Thanksgiving, Mother's and Father's Day, plus everyday thank-yous and birthdays. Each festival comes with its own greetings, colors and sticker (a diya for Diwali, a crescent moon for Eid, a menorah for Hanukkah, a lantern for Lunar New Year), and Lettertide works out the date so the card arrives on the day.
+- **Holidays and festivals from around the world.** New Year's, Valentine's Day, Lunar New Year, Easter, Passover, Eid, Mother's and Father's Day, Teacher Appreciation, Grandparents Day, Halloween, Diwali, Thanksgiving, Hanukkah, Christmas, Kwanzaa and more. Each one has its own painted postcard and greetings, and Lettertide works out the date.
 - **Christmas season.** From November 1 until Christmas, Santa moves to the top of the home page with a countdown to Christmas.
-- **Sent as you, answered to you.** Grandma sees the card from "Maya via Lettertide", and when she taps Reply, it goes straight to Maya's family.
+- **Sent as you.** Postcards go out from the sender's own phone or email, so the person receiving it only ever sees the sender.
 - **An airmail look.** Red-and-blue airmail stripes, envelope cream and stamp yellow on every screen and every email, with the three choices drawn as postage stamps. It works in light and dark mode.
 
 ---
@@ -59,15 +59,15 @@ Years later, the letter washes ashore with everything you packed:
 
 ### Someone special
 
-Make a card, decorate it, and send it now or on the day that matters.
+Pick the occasion, write (or say) the message, and pick a painted picture. Lettertide turns it into a real postcard: a colorful scene with the greeting on one side, the handwritten message, stamp, postmark and To line on the other.
 
-<p align="center"><img src="docs/screenshots/festivals.png" alt="Choosing an occasion: everyday cards and festivals like Diwali, Hanukkah, Christmas, Eid and Lunar New Year, each with its next date" width="700"></p>
+<p align="center"><img src="docs/screenshots/festivals.png" alt="Choosing an occasion: everyday cards plus holidays and festivals from around the world, each with its next date" width="700"></p>
 
-<p><img src="docs/screenshots/card.png" alt="Designing a kraft-paper Thanksgiving card for Grandma with a leaf sticker" width="49%"> <img src="docs/screenshots/card-when.png" alt="Choosing to send the card on Thanksgiving to Grandma's email" width="49%"></p>
+<p align="center"><img src="docs/screenshots/postcards.png" alt="Twelve painted postcards: Diwali, Christmas, Thank you, Eid, Holi, Birthday, Hanukkah, Lunar New Year, Halloween, Teacher Appreciation, Easter and New Year" width="900"></p>
 
-What arrives in their inbox: a postcard, with a picture side and a written side with stamp, postmark and address.
+<p><img src="docs/screenshots/card.png" alt="Picking a picture for the postcard, with a live preview" width="49%"> <img src="docs/screenshots/card-when.png" alt="Choosing to send the postcard now or on the day" width="49%"></p>
 
-<p align="center"><img src="docs/screenshots/email-card.png" alt="The card arrives as a postcard email: a Happy Diwali picture side, then the message with a stamp, postmark and To line" width="520"></p>
+**Sent from your own phone.** Tap **Send postcard** and your phone's share menu opens. Choose Messages (iMessage), WhatsApp, Mail or any app, and the postcard arrives as a picture from *your* number or email. There are no links, so it never looks like spam, and Lettertide never contacts the person you're writing to. For a postcard planned for a special day, Lettertide reminds you that morning so you can send it.
 
 ### Santa
 
@@ -92,17 +92,17 @@ Every letter in one place: floating to the future, arrived, Santa's replies, and
 - **Grown-ups sign in** with an email link (no passwords to remember). Kids never need an account of their own.
 - **Secret-word letters** are encrypted in the browser (AES-256) before they are saved. Without the word, nobody can read them, including whoever runs the server.
 - **Santa's rules** are fixed on the server and can't be changed by what a child types.
-- **No spoofed email.** Cards are sent from Lettertide under the writer's name with Reply-To set to the family's email, so they don't get blocked as fake mail.
+- **Lettertide never contacts the person you write to.** Postcards are sent by the sender from their own phone or email; Lettertide only emails the signed-in grown-up (sign-in links, their own future letters, and reminders).
 - **Limits** on sign-in emails, cards (20 a day) and Santa replies keep it from being misused.
 - **Your data is yours.** Download every letter at any time, or delete your account and everything in it.
 
 ## How it works
 
-- **Website:** one HTML page (no framework) with a step-by-step wizard for each kind of letter.
+- **Website:** one HTML page (no framework) with a step-by-step wizard for each kind of letter. Postcards are painted in the browser on a canvas and shared with the Web Share API.
 - **Server:** Node.js with Express.
 - **Storage:** a free [Turso](https://turso.tech) database (SQLite in the cloud). Locally it uses a plain SQLite file.
 - **Email:** a free Google Apps Script on your Gmail (`google-apps-script/send-mail.gs`), so emails come from a real Gmail account. Any SMTP provider also works on hosts that allow it.
-- **Delivery:** [cron-job.org](https://cron-job.org) (free) calls `/api/cron/deliver` every 10 minutes. That sends whatever is due (arriving future letters, scheduled cards, yearly check-ins) and keeps the free server awake.
+- **Delivery:** [cron-job.org](https://cron-job.org) (free) calls `/api/cron/deliver` every 10 minutes. That sends whatever is due (arriving future letters, postcard reminders, yearly check-ins) and keeps the free server awake.
 - **Santa:** writes personal replies with Claude when an Anthropic API key is set; otherwise a warm ready-made reply is used.
 
 ## Run it on your computer

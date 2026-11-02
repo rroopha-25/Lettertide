@@ -116,7 +116,8 @@ app.get('/api/confirm', async (req, res) => {
 const isBox = b => b && typeof b === 'object' && ['ct', 'iv', 'salt'].every(k => typeof b[k] === 'string' && b[k].length < 400000);
 const THEMES = ['sun', 'berry', 'ocean', 'fall', 'mint', 'grape'];
 const STICKERS = ['heart', 'star', 'leaf', 'flower', 'diya', 'lantern', 'moon', 'menorah', 'tree', 'sun'];
-const OCCASIONS = ['thanks', 'birthday', 'getwell', 'love', 'hello', 'thanksgiving', 'diwali', 'hanukkah', 'christmas', 'kwanzaa', 'pongal', 'lunar', 'eidfitr', 'holi', 'mothers', 'eidadha', 'fathers', 'rakhi'];
+const OCCASIONS = ['thanks', 'birthday', 'getwell', 'love', 'hello', 'thanksgiving', 'diwali', 'hanukkah', 'christmas', 'kwanzaa', 'pongal', 'lunar', 'eidfitr', 'holi', 'mothers', 'eidadha', 'fathers', 'rakhi', 'newyear', 'valentines', 'easter', 'passover', 'halloween', 'teacher', 'grandparents'];
+const SCENES = ['lights', 'snow', 'candles', 'moon', 'lanterns', 'colors', 'leaves', 'kinara', 'sunshine', 'blooms', 'stars', 'party', 'hearts', 'eggs', 'pumpkins', 'apples', 'fireworks'];
 
 function clean(b) {
   const kind = b.kind;
@@ -135,10 +136,10 @@ function clean(b) {
   }
   if (kind === 'people') {
     if (!String(b.to || '').trim() || !String(b.body || '').trim()) throw 'The card needs a name and a message.';
-    const email = normEmail(b.recipientEmail);
-    if (email && !EMAIL_RE.test(email)) throw 'That email address doesn\'t look right.';
+    // Cards go out from the sender's own phone or email, so the server never stores or contacts the recipient.
     return { to: str(b.to, 80), from: str(b.from, 60), body: str(b.body, 5000), theme: THEMES.includes(b.theme) ? b.theme : 'sun',
-      sticker: STICKERS.includes(b.sticker) ? b.sticker : 'heart', occasion: OCCASIONS.includes(b.occasion) ? b.occasion : 'hello', recipientEmail: email || undefined };
+      sticker: STICKERS.includes(b.sticker) ? b.sticker : 'heart', occasion: OCCASIONS.includes(b.occasion) ? b.occasion : 'hello',
+      scene: SCENES.includes(b.scene) ? b.scene : undefined };
   }
   if (kind === 'santa') return { name: str(b.name, 60), age: str(b.age, 20), body: str(b.body, 5000), reply: str(b.reply, 5000) };
   throw 'Unknown letter type.';
@@ -158,17 +159,16 @@ app.post('/api/letters', auth, async (req, res) => {
   else if (!(deliver > t + 60e3 && deliver < t + 101 * 365 * DAY)) return res.status(400).json({ error: 'Pick a day between tomorrow and 100 years from now.' });
   const count = (await db.get('SELECT COUNT(*) n FROM mail WHERE user_id = ?', req.user.id)).n;
   if (count >= 1000) return res.status(400).json({ error: 'Your mailbox is full. Delete some old letters first.' });
-  if (b.kind === 'people' && data.recipientEmail && !limit('cards:' + req.user.id, 20, DAY)) return res.status(429).json({ error: 'You can email up to 20 cards a day. Try again tomorrow.' });
   const id = crypto.randomUUID();
-  const recipient = b.kind === 'people' ? data.recipientEmail || null : b.kind === 'future' ? data.deliverTo || req.user.email : null;
-  await db.run('INSERT INTO mail (id, user_id, kind, created, deliver, data, recipient_email, delivered_at) VALUES (?,?,?,?,?,?,?,?)', id, req.user.id, b.kind, t, deliver, JSON.stringify(data), recipient, b.kind === 'santa' || (b.kind === 'people' && !recipient) ? t : null);
+  const recipient = b.kind === 'future' ? data.deliverTo || req.user.email : null;
+  await db.run('INSERT INTO mail (id, user_id, kind, created, deliver, data, recipient_email, delivered_at) VALUES (?,?,?,?,?,?,?,?)', id, req.user.id, b.kind, t, deliver, JSON.stringify(data), recipient, b.kind === 'santa' || (b.kind === 'people' && deliver <= t + 60e3) ? t : null);
   res.status(201).json(toClient(await db.get('SELECT * FROM mail WHERE id = ?', id)));
-  if (b.kind === 'people' && recipient && deliver <= now() + 1000) tick().catch(e => console.error(e)); // "right now" cards go out immediately
 });
 app.patch('/api/letters/:id', auth, async (req, res) => {
   const r = await db.get('SELECT * FROM mail WHERE id = ? AND user_id = ?', req.params.id, req.user.id);
   if (!r) return res.status(404).json({ error: 'Letter not found.' });
   if (req.body?.opened && r.deliver <= now()) await db.run('UPDATE mail SET opened = ? WHERE id = ?', now(), r.id);
+  if (req.body?.sent && r.kind === 'people') { const d = JSON.parse(r.data); d.sent = now(); await db.run('UPDATE mail SET data = ? WHERE id = ?', JSON.stringify(d), r.id); }
   res.json(toClient(await db.get('SELECT * FROM mail WHERE id = ?', r.id)));
 });
 app.delete('/api/letters/:id', auth, async (req, res) => {
@@ -221,10 +221,10 @@ async function tick() {
           await mailer.send(m.recipient_email || m.email, mailer.templates.arrived({ created: m.created, link: `${BASE_URL}/#mailbox`, letter: d.letter }));
           if (m.backup_email && t - m.last_confirmed > 395 * DAY) await mailer.send(m.backup_email, mailer.templates.arrivedBackup({ owner: m.email, link: BASE_URL }));
           out.future++;
-        } else if (m.kind === 'people' && m.recipient_email) {
+        } else if (m.kind === 'people') {
+          // remind the sender (never the recipient) that today is the day to send their postcard
           const card = JSON.parse(m.data);
-          await mailer.send(m.recipient_email, mailer.templates.card(card, t), { replyTo: m.email, fromName: card.from });
-          out.cards++;
+          if (!card.sent) { await mailer.send(m.email, mailer.templates.sendReminder({ ...card, link: `${BASE_URL}/#mailbox` })); out.cards++; }
         }
         await db.run('UPDATE mail SET delivered_at = ? WHERE id = ?', t, m.id);
       } catch (e) { console.error('delivery failed', m.id, e.message); }

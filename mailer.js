@@ -105,6 +105,11 @@ const templates = {
       html
     };
   },
+  sendReminder: c => ({
+    subject: `Today's the day to send ${c.to}'s postcard`,
+    text: `You made a postcard for ${c.to}. Today's the day to send it. Open Lettertide on your phone and tap Send postcard: ${c.link}`,
+    html: wrap(`Time to send ${c.to}'s postcard`, `You made a postcard for <b>${esc(c.to)}</b>, and today's the day.<br><br>Open your mailbox on Lettertide on your phone and tap <b>Send postcard</b>. It goes from your own phone or email, so ${esc(c.to)} sees it's from you.`, { href: c.link, label: 'Open my mailbox' })
+  }),
   arrivedBackup: ({ owner, link }) => ({
     subject: 'A Lettertide letter has arrived for someone who listed you',
     text: `${owner} listed you as their backup contact. A letter they wrote to themselves has arrived. Please let them know: ${link}`,

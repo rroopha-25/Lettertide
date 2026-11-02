@@ -38,27 +38,24 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   assert.equal(locked.r.status, 201);
   assert.equal((await post('/api/letters', { kind: 'future', deliver: Date.now() - 1, letter: { body: 'x' } })).r.status, 400);
 
-  // card right now → emailed to recipient immediately, reply-to the parent
-  const card = await post('/api/letters', { kind: 'people', deliver: Date.now(), to: 'Grandma', from: 'Maya', body: 'Dear Grandma,\nThank you for the cookies!', theme: 'fall', sticker: 'leaf', occasion: 'thanksgiving', recipientEmail: 'grandma@example.com' });
-  assert.equal(card.r.status, 201);
+  // postcards are sent from the sender's own phone or email: the server never emails the recipient
+  const before = outbox.length;
+  const card = await post('/api/letters', { kind: 'people', deliver: Date.now(), to: 'Grandma', from: 'Maya', body: 'Dear Grandma,\nThank you for the cookies!', occasion: 'thanksgiving', scene: 'leaves', recipientEmail: 'grandma@example.com' });
+  assert.equal(card.r.status, 201); assert.equal(card.j.scene, 'leaves'); assert.equal(card.j.recipientEmail, undefined, 'recipient email is never stored');
   await wait(200);
-  const g = outbox.find(m => m.to === 'grandma@example.com');
-  assert(g && /Thanksgiving card for you from Maya/.test(g.subject) && g.replyTo === 'parent@example.com' && g.fromName === 'Maya' && g.html.includes('From Maya') && g.html.includes('postcard'));
-  assert.equal(require('../mailer').fromFor('Maya'), '"Maya via Lettertide" <letters@localhost>');
+  assert.equal(outbox.length, before, 'nothing emailed for a send-now postcard');
   assert.equal(require('../mailer').fromFor('Evil"<x@y>'), '"Evilx@y via Lettertide" <letters@localhost>');
-  // scheduled card + bad email
-  const later = await post('/api/letters', { kind: 'people', deliver: Date.now() + 10 * 864e5, to: 'Mr. Lee', body: 'Thank you for teaching me', occasion: 'thanks', recipientEmail: 'lee@example.com' });
+  // marking a postcard as sent
+  await call('/api/letters/' + card.j.id, { method: 'PATCH', body: JSON.stringify({ sent: true }) });
+  assert((await call('/api/letters')).j.find(x => x.id === card.j.id).sent > 0);
+  // scheduled postcard: reminder to the sender on the day
+  const later = await post('/api/letters', { kind: 'people', deliver: Date.now() + 10 * 864e5, to: 'Mr. Lee', from: 'Maya', body: 'Thank you for teaching me', occasion: 'teacher', scene: 'apples' });
   assert.equal(later.r.status, 201);
-  assert.equal((await post('/api/letters', { kind: 'people', deliver: Date.now(), to: 'X', body: 'hi there you', recipientEmail: 'nope' })).r.status, 400);
-  // festival cards: occasion and sticker accepted, subject matches
-  const diwali = await post('/api/letters', { kind: 'people', deliver: Date.now(), to: 'Nani', from: 'Maya', body: 'Happy Diwali Nani!', theme: 'sun', sticker: 'diya', occasion: 'diwali', recipientEmail: 'nani@example.com' });
-  assert.equal(diwali.r.status, 201); assert.equal(diwali.j.sticker, 'diya'); assert.equal(diwali.j.occasion, 'diwali');
-  await wait(200);
-  assert.match(outbox.find(m => m.to === 'nani@example.com').subject, /Happy Diwali card for you from Maya/);
-  // HTML in a card is escaped in the email
-  await post('/api/letters', { kind: 'people', deliver: Date.now(), to: '<b>Bo</b>', body: '<script>x</script> hello friend', recipientEmail: 'bo@example.com' });
-  await wait(200);
-  assert(!outbox.find(m => m.to === 'bo@example.com').html.includes('<script>'));
+  // festival and global occasions accepted; unknown scene dropped
+  const diwali = await post('/api/letters', { kind: 'people', deliver: Date.now(), to: 'Nani', from: 'Maya', body: 'Happy Diwali Nani!', occasion: 'diwali', scene: 'lights' });
+  assert.equal(diwali.r.status, 201); assert.equal(diwali.j.occasion, 'diwali'); assert.equal(diwali.j.scene, 'lights');
+  const odd = await post('/api/letters', { kind: 'people', deliver: Date.now(), to: '<b>Bo</b>', body: '<script>x</script> hello friend', occasion: 'halloween', scene: 'not-a-scene' });
+  assert.equal(odd.j.occasion, 'halloween'); assert.equal(odd.j.scene, undefined);
 
   // Santa: template reply, never empty, saved
   const s = await post('/api/santa', { name: 'Maya', age: '7', body: 'Dear Santa, I would love a red bike. I helped my mom bake.' });
@@ -66,10 +63,11 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   assert.equal((await post('/api/letters', { kind: 'santa', name: 'Maya', age: '7', body: 'Dear Santa…', reply: s.j.reply })).r.status, 201);
   assert.equal((await call('/api/letters')).j.length, 7);
 
-  // time-travel: scheduled card arrives
+  // time-travel: the scheduled postcard's day arrives -> reminder goes to the sender only
   await db.run('UPDATE mail SET deliver = ? WHERE id = ?', Date.now() - 1000, later.j.id);
   let res = await tick(); assert.equal(res.cards, 1);
-  assert(outbox.at(-1).to === 'lee@example.com');
+  assert.equal(outbox.at(-1).to, 'parent@example.com'); assert.match(outbox.at(-1).subject, /send Mr. Lee's postcard/);
+  assert.equal((await tick()).cards, 0, 'reminder sent once');
 
   // a year of silence → check-in; then future letter arrives → owner + backup
   await call('/api/me', { method: 'PATCH', body: JSON.stringify({ backupEmail: 'aunt@example.com' }) });
@@ -100,5 +98,5 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   assert.equal((await db.get('SELECT COUNT(*) n FROM mail')).n, 0);
 
   srv.close();
-  console.log('All checks passed: sign-in, scheduler link, festival cards, future letters, cards now + scheduled (escaped, reply-to parent), Santa reply, yearly check-in, delivery + backup, export, deletion.');
+  console.log('All checks passed: sign-in, scheduler link, postcards never email recipients, day-of reminders to sender, festival and global occasions, future letters, Santa reply, yearly check-in, delivery + backup, export, deletion.');
 })().catch(e => { console.error(e); process.exit(1); });
