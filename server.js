@@ -193,6 +193,7 @@ app.post('/api/santa', auth, async (req, res) => {
 const PAGE = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
 const SHELL = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script>window.LETTERTIDE_API="/api";</script></head><body>${PAGE}</body></html>`;
 app.get('/', async (req, res) => res.type('html').send(SHELL));
+app.get('/privacy.html', async (req, res) => res.sendFile(path.join(__dirname, 'public', 'privacy.html')));
 app.get('/healthz', async (req, res) => res.json({ ok: true }));
 
 // A free scheduler (cron-job.org) calls this every 10 minutes. It keeps the free server awake

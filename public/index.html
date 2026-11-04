@@ -503,7 +503,7 @@ footer{padding-block:10px 40px;text-align:center;color:var(--muted);font-size:15
 <!-- READ -->
 <main data-panel="read" class="g" hidden><div class="wrap wiz" id="read"></div></main>
 
-<footer class="g"><div class="wrap" id="foot">Lettertide</div></footer>
+<footer class="g"><div class="wrap"><span id="foot">Lettertide</span> <a id="privacy-link" href="privacy.html" style="color:inherit;font-weight:700;margin-left:6px">Privacy</a></div></footer>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script>
@@ -599,6 +599,7 @@ function renderSignins(){
     const warn = Store.mode === 'claude' ? 'Heads up: this page can\'t send emails. Your letter will wait in My mailbox here until its day, so come back to open it.' : 'For now your letter is saved on this device and waits in My mailbox until its day. Email delivery is coming soon.';
     $('#f-where').textContent = warn; $('#f-where').style.cssText = 'background:color-mix(in srgb,var(--sun) 30%,var(--surface));padding:12px 14px;border-radius:14px;color:var(--ink);font-weight:700';
   }
+  if (Store.mode === 'claude') $('#privacy-link').hidden = true;
   $('#foot').textContent = { claude:'Your letters are private to you and saved in your Claude account.', server:'Lettertide keeps your letters safe until the day they arrive.', local:'Your letters are saved on this device. Email delivery is coming soon.' }[Store.mode] || 'Lettertide';
 }
 

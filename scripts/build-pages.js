@@ -48,4 +48,5 @@ fs.mkdirSync(out, { recursive: true });
 fs.writeFileSync(path.join(out, 'index.html'), html);
 fs.copyFileSync(path.join(root, 'docs', 'og.png'), path.join(out, 'og.png'));
 fs.writeFileSync(path.join(out, '.nojekyll'), '');
+fs.copyFileSync(path.join(root, 'public', 'privacy.html'), path.join(out, 'privacy.html'));
 console.log(`Built ${path.relative(root, out)}/index.html (${(html.length / 1024).toFixed(0)} KB) for ${SITE}`);
