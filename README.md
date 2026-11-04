@@ -155,3 +155,7 @@ test/smoke.js       end-to-end test of every feature
 render.yaml         one-click setup on Render
 docs/screenshots/   the pictures in this README
 ```
+
+## License
+
+Copyright © 2026 Roopha. **All rights reserved.** The code is shared so you can see how Lettertide works, but it may not be copied, modified, reused or hosted without written permission. See [LICENSE](LICENSE).
